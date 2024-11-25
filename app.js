@@ -203,6 +203,10 @@ cron.schedule("0 */12 * * *", async () => {
 // Project Routes
 app.use("/api/v1/", APIRouteTable);
 
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to the API" });
+});
+
 // Error Middleware
 app.use(errorMiddleware);
 
