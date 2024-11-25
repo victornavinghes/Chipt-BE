@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 const app = require("./app.js");
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 443;
 const https = require("https");
 const path = require("path");
 const express = require("express");
