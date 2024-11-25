@@ -8,7 +8,9 @@ const ErrorHandler = require("../../utils/errorHandler.js");
 const ApiFeatures = require("../../utils/apiFeatures.js");
 const utilsMiddleware = require("../../controllers/utilController/utilsMiddleware.js");
 const { cupsResponses } = require("../../utils/responseObjects.js");
-const { generateUniqueIDForCups } = require("../utilController/utilsMiddleware.js");
+const {
+  generateUniqueIDForCups,
+} = require("../utilController/utilsMiddleware.js");
 
 // Database
 const CupAvailable = require("../../models/Cups/CupAvailable.js");
@@ -51,7 +53,7 @@ exports.projectName_Admin_New_Cup_Information_Upload = CatchAsync(
         !cupCapacity ||
         !numberOfCups ||
         !currency,
-        loyalityPoint)
+      loyalityPoint)
     ) {
       return next(new ErrorHandler(`Please provide all details`, 404));
     }
@@ -84,7 +86,7 @@ exports.projectName_Admin_New_Cup_Information_Upload = CatchAsync(
       currency: req.body.currency.toLowerCase(),
       loyaltyPoints: req.body.loyalityPoint,
       isCupAvailable: true,
-      returnTime: req.body.returnTime? parseInt(req.body.returnTime) : 30,
+      returnTime: req.body.returnTime ? parseInt(req.body.returnTime) : 20,
       cupImages: [],
     });
 
@@ -155,11 +157,11 @@ exports.projectName_Admin_All_Cups_In_Inventory = CatchAsync(
     // a) Fetching all cups in inventory
     const cupsInInventory = req.query.keyword
       ? await CupInventory.find({
-        cupType: { $regex: req.query.keyword.toLowerCase() },
-      })
+          cupType: { $regex: req.query.keyword.toLowerCase() },
+        })
       : await CupInventory.find()
-        .select("+cupsAvailable +returnTime")
-        .sort({ createdAt: -1 });
+          .select("+cupsAvailable +returnTime")
+          .sort({ createdAt: -1 });
     if (cupsInInventory.length === 0 || !cupsInInventory)
       return next(new ErrorHandler(`No data found`, 200));
 
@@ -175,36 +177,48 @@ exports.projectName_Admin_Cup_Inventory_Update = CatchAsync(
     const cupID = req.params.id;
 
     // b) Checking if data exist
-    const isCupExist = await CupInventory.findById({ _id: cupID }).select("+returnTime").catch(
-      (err) => {
+    const isCupExist = await CupInventory.findById({ _id: cupID })
+      .select("+returnTime")
+      .catch((err) => {
         return next(new ErrorHandler(`Something went wrong`, 404));
-      }
-    );
+      });
     if (!isCupExist)
       return next(new ErrorHandler(`Cup details not found`, 200));
 
-    isCupExist.cupCapacity = req.body.cupCapacity ? parseInt(req.body.cupType.cupCapacity) : isCupExist.cupCapacity;
-    isCupExist.cupPrice = req.body.cupPrice ? parseInt(req.body.cupPrice) : isCupExist.cupPrice;
-    isCupExist.currency = req.body.currency ? req.body.currency.toLowerCase() : isCupExist.currency.toLowerCase();
-    isCupExist.isCupAvailable = req.body.isCupAvailable ? req.body.isCupAvailable : isCupExist.isCupAvailable;
-    isCupExist.returnTime = req.body.returnTime ? parseInt(req.body.returnTime) : isCupExist.returnTime;
+    isCupExist.cupCapacity = req.body.cupCapacity
+      ? parseInt(req.body.cupType.cupCapacity)
+      : isCupExist.cupCapacity;
+    isCupExist.cupPrice = req.body.cupPrice
+      ? parseInt(req.body.cupPrice)
+      : isCupExist.cupPrice;
+    isCupExist.currency = req.body.currency
+      ? req.body.currency.toLowerCase()
+      : isCupExist.currency.toLowerCase();
+    isCupExist.isCupAvailable = req.body.isCupAvailable
+      ? req.body.isCupAvailable
+      : isCupExist.isCupAvailable;
+    isCupExist.returnTime = req.body.returnTime
+      ? parseInt(req.body.returnTime)
+      : isCupExist.returnTime;
     if (req.body.numberOfCups) {
       if (isCupExist.numberOfCups) {
-        isCupExist.numberOfCups += parseInt(req.body.numberOfCups)
+        isCupExist.numberOfCups += parseInt(req.body.numberOfCups);
       } else {
-        isCupExist.numberOfCups = parseInt(req.body.numberOfCups)
+        isCupExist.numberOfCups = parseInt(req.body.numberOfCups);
       }
     }
-    const availModel = await CupAvailable.findOne({ modelID: isCupExist.cupModelUniqueId })
+    const availModel = await CupAvailable.findOne({
+      modelID: isCupExist.cupModelUniqueId,
+    });
     if (req.body.cupType && availModel) {
-      isCupExist.cupType = req.body.cupType.toLowerCase()
-      availModel.cupType = req.body.cupType.toLowerCase()
+      isCupExist.cupType = req.body.cupType.toLowerCase();
+      availModel.cupType = req.body.cupType.toLowerCase();
     }
     if (req.body.cupSize && availModel) {
-      isCupExist.cupSize = req.body.cupSize.toLowerCase()
-      availModel.cupSize = req.body.cupSize.toLowerCase()
+      isCupExist.cupSize = req.body.cupSize.toLowerCase();
+      availModel.cupSize = req.body.cupSize.toLowerCase();
     }
-    if (availModel) await availModel.save()
+    if (availModel) await availModel.save();
     await isCupExist.save();
 
     // ) Sending response
@@ -268,8 +282,9 @@ exports.projectName_Admin_Cup_Availability_Status_Update = CatchAsync(
     // ) Sending response
     res.status(200).json({
       success: true,
-      message: `Cup is made ${cupInventory.isCupAvailable ? "available." : "not available."
-        }`,
+      message: `Cup is made ${
+        cupInventory.isCupAvailable ? "available." : "not available."
+      }`,
     });
   }
 );
@@ -465,7 +480,7 @@ exports.projectName_Admin_Adding_New_Scanned_Cup_In_DB = CatchAsync(
     // Checking if cup exist
     const existingCup = await Cups.findOne({
       // cupModelUniqueId: modelID.toUpperCase(),
-      cupUniqueId: cupID.split(":").join("").toUpperCase(),
+      cupUniqueId: cupID.toUpperCase(),
     });
 
     if (existingCup) {
@@ -483,7 +498,7 @@ exports.projectName_Admin_Adding_New_Scanned_Cup_In_DB = CatchAsync(
     const cupData = await Cups.create({
       cupID: fetchingCupID._id,
       cupModelUniqueId: modelID.toUpperCase(),
-      cupUniqueId: cupID.split(":").join("").toUpperCase(),
+      cupUniqueId: cupID.toUpperCase(),
       cupBoughtHistory: [],
     });
 
@@ -501,14 +516,15 @@ exports.projectName_Admin_Cup_Details_Delete_In_Inventory = CatchAsync(
     // a) Destructuring data
     const cupID = req.params.id;
 
-    const cupInventory = await CupInventory.findByIdAndDelete({ _id: cupID })
-      .catch((err) => { });
+    const cupInventory = await CupInventory.findByIdAndDelete({
+      _id: cupID,
+    }).catch((err) => {});
 
     if (!cupInventory) {
       return res.status(200).json({
         success: true,
-        message: `Cup already been deleted!`
-      })
+        message: `Cup already been deleted!`,
+      });
     }
 
     // ) Sending response
@@ -522,14 +538,13 @@ exports.projectName_Admin_Cup_Details_Delete_In_Inventory = CatchAsync(
 // 14) ADMIN: projectName_Admin_All_Available_Cups_List
 exports.projectName_Admin_All_Available_Cups_List = CatchAsync(
   async (req, res, next) => {
-
     const cupsAvailable = await Cups.find({ isActive: true })
       // .select('cupID cupModelUniqueId cupUniqueId')
-      .populate('cupID', 'cupSize cupType')
-      .catch((err) => { });
+      .populate("cupID", "cupSize cupType")
+      .catch((err) => {});
 
     if (!cupsAvailable) {
-      return next(new ErrorHandler('No data dound', 404))
+      return next(new ErrorHandler("No data dound", 404));
     }
 
     // ) Sending response
@@ -537,7 +552,7 @@ exports.projectName_Admin_All_Available_Cups_List = CatchAsync(
       success: true,
       message: "All available cups.",
       length: cupsAvailable.length,
-      cups: cupsAvailable
+      cups: cupsAvailable,
     });
   }
 );
@@ -545,28 +560,26 @@ exports.projectName_Admin_All_Available_Cups_List = CatchAsync(
 // 15)
 exports.projectName_Admin_Disable_Available_Cups = CatchAsync(
   async (req, res, next) => {
-
     // Destructuring data
-    const { cupID } = req.body
+    const { cupID } = req.body;
 
     const cupsAvailable = await Cups.findOne({ cupID: cupID })
-      .select('cupID cupModelUniqueId cupUniqueId +isActive')
-      .populate('cupID', 'cupSize cupType')
-      .catch((err) => { });
+      .select("cupID cupModelUniqueId cupUniqueId +isActive")
+      .populate("cupID", "cupSize cupType")
+      .catch((err) => {});
 
     if (!cupsAvailable) {
-      return next(new ErrorHandler('No data dound', 404))
+      return next(new ErrorHandler("No data dound", 404));
     }
 
     if (!cupsAvailable.isActive) {
       return res.status(200).json({
         success: true,
-        message: `Cup already been deleted!`
-      })
-    }
-    else {
-      cupsAvailable.isActive = false
-      cupsAvailable.isOrderable = false
+        message: `Cup already been deleted!`,
+      });
+    } else {
+      cupsAvailable.isActive = false;
+      cupsAvailable.isOrderable = false;
       await cupsAvailable.save();
     }
 
@@ -579,13 +592,12 @@ exports.projectName_Admin_Disable_Available_Cups = CatchAsync(
 );
 
 const formattingRequestBody = async function (avlCup, prdCup) {
-
   let tempData = [];
-  let tempAvlCup = []
+  let tempAvlCup = [];
   const uniqueObject = {};
 
   // Use the filter method to filter out duplicate objects based on the concatenated key value
-  const providedData = prdCup.filter(obj => {
+  const providedData = prdCup.filter((obj) => {
     let isTemp = "" + obj.cupID;
     const key = isTemp + ":" + obj.cupSize + ":" + obj.cupType;
     if (!uniqueObject[key]) {
@@ -598,18 +610,22 @@ const formattingRequestBody = async function (avlCup, prdCup) {
   providedData.forEach((data) => {
     let isExist = false;
     for (let i = 0; i < avlCup.length; i++) {
-      let isCupType = avlCup[i].cupType.toString().toLowerCase() === data.cupType.toString().toLowerCase();
-      let isCupSize = avlCup[i].cupSize.toString().toLowerCase() === data.cupSize.toString().toLowerCase();
+      let isCupType =
+        avlCup[i].cupType.toString().toLowerCase() ===
+        data.cupType.toString().toLowerCase();
+      let isCupSize =
+        avlCup[i].cupSize.toString().toLowerCase() ===
+        data.cupSize.toString().toLowerCase();
       if (isCupType && isCupSize) {
         isExist = true;
         let temp = {
           modelID: avlCup[i].modelID,
           cupType: data.cupType.toLowerCase(),
           cupSize: data.cupSize.toLowerCase(),
-          cupID: data.cupID.toUpperCase()
-        }
-        tempData.push(temp)
-        break
+          cupID: data.cupID.toUpperCase(),
+        };
+        tempData.push(temp);
+        break;
       }
     }
     if (!isExist) {
@@ -618,27 +634,25 @@ const formattingRequestBody = async function (avlCup, prdCup) {
         modelID: mdID.toUpperCase(),
         cupType: data.cupType.toLowerCase(),
         cupSize: data.cupSize.toLowerCase(),
-        cupID: data.cupID.toUpperCase()
-      }
+        cupID: data.cupID.toUpperCase(),
+      };
       tempData.push(temp);
-      tempAvlCup.push(temp)
+      tempAvlCup.push(temp);
     }
-  })
-
+  });
 
   let result = {
     formatData: tempData,
     filterAvlCup: tempAvlCup,
-  }
+  };
   return result;
-}
+};
 
 const inventoryCupFilter = async function (avlCup, prdCup) {
-
   let result = {
     newCups: [],
-    avlCups: []
-  }
+    avlCups: [],
+  };
 
   prdCup.forEach((data) => {
     if (avlCup.length > 0) {
@@ -651,15 +665,16 @@ const inventoryCupFilter = async function (avlCup, prdCup) {
           isNew = true;
           break;
         }
-      } if (!isNew) {
+      }
+      if (!isNew) {
         let temp = {
           cupModelUniqueId: data.modelID,
           cupType: data.cupType,
           cupSize: data.cupSize,
           cupsAvailable: 1,
           numberOfCups: 1,
-        }
-        result.newCups.push(temp)
+        };
+        result.newCups.push(temp);
       }
     } else {
       if (result.newCups.length == 0) {
@@ -669,7 +684,7 @@ const inventoryCupFilter = async function (avlCup, prdCup) {
           cupSize: data.cupSize,
           cupsAvailable: 1,
           numberOfCups: 1,
-        }
+        };
         result.newCups.push(temp);
       } else {
         let isCupExist = false;
@@ -678,7 +693,7 @@ const inventoryCupFilter = async function (avlCup, prdCup) {
             result.newCups[i].numberOfCups += 1;
             result.newCups[i].cupsAvailable += 1;
             isCupExist = true;
-            break
+            break;
           }
         }
         if (!isCupExist) {
@@ -688,18 +703,22 @@ const inventoryCupFilter = async function (avlCup, prdCup) {
             cupSize: data.cupSize,
             cupsAvailable: 1,
             numberOfCups: 1,
-          }
-          result.newCups.push(temp)
+          };
+          result.newCups.push(temp);
         }
       }
     }
-  })
+  });
   return result;
-}
+};
 // Function to filter objects from the secondary array not present in the main array
 const filterSecondaryArray = (mainArray, secondaryArray) => {
-  return secondaryArray.filter(secondaryObj => {
-    return !mainArray.some(mainObj => mainObj.cupModelUniqueId === secondaryObj.cupModelUniqueId && mainObj.cupUniqueId === secondaryObj.cupUniqueId);
+  return secondaryArray.filter((secondaryObj) => {
+    return !mainArray.some(
+      (mainObj) =>
+        mainObj.cupModelUniqueId === secondaryObj.cupModelUniqueId &&
+        mainObj.cupUniqueId === secondaryObj.cupUniqueId
+    );
   });
 };
 
@@ -709,75 +728,92 @@ const updatedUserCupsFilter = async function (inventory, cups, tempData) {
       cupID: undefined,
       cupModelUniqueId: data.modelID.toUpperCase(),
       cupUniqueId: data.cupID.toUpperCase(),
-    }
+    };
     for (let j = 0; j < inventory.length; j++) {
-      if(inventory[j].cupModelUniqueId === data.modelID){
+      if (inventory[j].cupModelUniqueId === data.modelID) {
         temp.cupID = inventory[j]._id;
         break;
       }
     }
     return temp;
-  })
-  
-  let result = filterSecondaryArray(cups, updatedData)
+  });
+
+  let result = filterSecondaryArray(cups, updatedData);
   return result;
-}
+};
 
-
-exports.projectName_Upload_Cup_Details_Using_CSV_Data = CatchAsync(async (req, res, next) => {
-
-  // Destructuring Data from request header
-  const { uploadedCSV } = req.body;
-  if (!uploadedCSV) {
-    return res.status(400).json({
-      success: false,
-      message: `Please provide a csv file!`
-    })
-  }
-
-  let csvData = uploadedCSV;
-
-  // Checking length of input
-  if (csvData.length > 1000) {
-    return res.status(400).json({
-      success: false,
-      message: `Please provide less data then 1000!`
-    })
-  }
-
-  const availableCups = await CupAvailable.find();
-  const inventoryCups = await CupInventory.find().select("+cupsAvailable");
-  const isCups = await Cups.find()
-
-  const avlFormattedData = await formattingRequestBody(availableCups, csvData);
-  const uniqueObject = {};
-  // Use the filter method to filter out duplicate objects based on the concatenated key value
-  const providedData = avlFormattedData.filterAvlCup.filter(obj => {
-    const key = obj.cupSize + obj.cupType;
-    if (!uniqueObject[key]) {
-      uniqueObject[key] = true;
-      return true;
+exports.projectName_Upload_Cup_Details_Using_CSV_Data = CatchAsync(
+  async (req, res, next) => {
+    // Destructuring Data from request header
+    const { uploadedCSV } = req.body;
+    if (!uploadedCSV) {
+      return res.status(400).json({
+        success: false,
+        message: `Please provide a csv file!`,
+      });
     }
-    return false;
-  });
-  await CupAvailable.insertMany(providedData);
 
-  const inventoryFormattedData = await inventoryCupFilter(inventoryCups, avlFormattedData.formatData);
+    let csvData = uploadedCSV;
 
-  await CupInventory.insertMany(inventoryFormattedData.newCups);
-  for (const { _id, cupsAvailable, numberOfCups } of inventoryFormattedData.avlCups) {
-    await CupInventory.updateOne({ _id }, { $set: { cupsAvailable, numberOfCups } });
+    // Checking length of input
+    if (csvData.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: `Please provide less data then 1000!`,
+      });
+    }
+
+    const availableCups = await CupAvailable.find();
+    const inventoryCups = await CupInventory.find().select("+cupsAvailable");
+    const isCups = await Cups.find();
+
+    const avlFormattedData = await formattingRequestBody(
+      availableCups,
+      csvData
+    );
+    const uniqueObject = {};
+    // Use the filter method to filter out duplicate objects based on the concatenated key value
+    const providedData = avlFormattedData.filterAvlCup.filter((obj) => {
+      const key = obj.cupSize + obj.cupType;
+      if (!uniqueObject[key]) {
+        uniqueObject[key] = true;
+        return true;
+      }
+      return false;
+    });
+    await CupAvailable.insertMany(providedData);
+
+    const inventoryFormattedData = await inventoryCupFilter(
+      inventoryCups,
+      avlFormattedData.formatData
+    );
+
+    await CupInventory.insertMany(inventoryFormattedData.newCups);
+    for (const {
+      _id,
+      cupsAvailable,
+      numberOfCups,
+    } of inventoryFormattedData.avlCups) {
+      await CupInventory.updateOne(
+        { _id },
+        { $set: { cupsAvailable, numberOfCups } }
+      );
+    }
+    const isinventoryCups = await CupInventory.find();
+
+    const newCups = await updatedUserCupsFilter(
+      isinventoryCups,
+      isCups,
+      avlFormattedData.formatData
+    );
+    if (newCups.length !== 0) {
+      await Cups.insertMany(newCups);
+    }
+
+    // Sending response
+    res.status(200).json({
+      success: true,
+      message: "Cups Uploaded Successfully!",
+    });
   }
-  const isinventoryCups = await CupInventory.find();
-
-  const newCups = await updatedUserCupsFilter(isinventoryCups, isCups, avlFormattedData.formatData);
-  if(newCups.length!==0){
-    await Cups.insertMany(newCups)
-  }
-
-  // Sending response
-  res.status(200).json({
-    success: true,
-    message: "Cups Uploaded Successfully!",
-  });
-});
+);

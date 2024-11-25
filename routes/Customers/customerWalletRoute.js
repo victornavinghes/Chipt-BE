@@ -4,6 +4,7 @@ const authToken = require("../../utils/authToken");
 const {
   ActivateWalletController,
   GetWalletController,
+  GetPackageOrderController,
 } = require("../../controllers/Customer/customerwalletController");
 const {
   GetSecurityDepositWithdrawl,
@@ -11,15 +12,16 @@ const {
 
 // Common middleware
 const packageAuthMiddleware = [
-  // authToken.isUserAuthenticated,
-  // authToken.isUserAccountActive,
-  // authToken.isUserAccountVerified,
-  // authToken.userAuthorizedRole(["super_vendor", "admin"]),
-  // authToken.userDataClear,
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
 ];
 
 // 1. Add the package and get all packages
 router.route("/activate").post(packageAuthMiddleware, ActivateWalletController);
+router.route("/orders").get(packageAuthMiddleware, GetPackageOrderController);
 
 router.route("/:customerId").get(packageAuthMiddleware, GetWalletController);
 router

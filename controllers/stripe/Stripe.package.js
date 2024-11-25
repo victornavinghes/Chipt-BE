@@ -2,7 +2,7 @@ const stripe_secret_key = process.env.STRIPE_SECRET_KEY;
 const stripe = require("stripe")(stripe_secret_key);
 const { v4: uuidv4 } = require("uuid");
 
-async function createStripeProduct(name, description, price, currency = "mga") {
+async function createStripeProduct(name, description, price, currency = "myr") {
   try {
     const stripeProduct = await stripe.products.create({
       name,
@@ -10,7 +10,7 @@ async function createStripeProduct(name, description, price, currency = "mga") {
     });
     const stripePrice = await stripe.prices.create({
       product: stripeProduct.id,
-      unit_amount: price,
+      unit_amount: price * 100,
       currency: currency,
     });
     return {
@@ -74,7 +74,7 @@ async function createPackageCheckoutSession(priceId, customerId, packageId) {
     ],
     mode: "payment",
     client_reference_id: customerId,
-    success_url: `${process.env.CUSTOMER_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.CUSTOMER_BASE_URL}/wallet`,
     cancel_url: `${process.env.CUSTOMER_BASE_URL}/cancel`,
     metadata: {
       type: "package",

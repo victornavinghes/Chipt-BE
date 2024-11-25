@@ -174,8 +174,8 @@ const authToken = {
   userAuthorizedRole: function (roles) {
     return (req, res, next) => {
       if (
-        roles[0].toLowerCase() !== req.user.primaryRole.toLowerCase() ||
-        roles[1].toLowerCase() !== req.user.secondaryRole.toLowerCase()
+        roles[0].toLowerCase() !== req.user?.primaryRole.toLowerCase() ||
+        roles[1].toLowerCase() !== req.user?.secondaryRole.toLowerCase()
       ) {
         return next(new ErrorHandler(`Unauthorizes access.`, 403));
       }
@@ -196,7 +196,9 @@ const authToken = {
 
   // 00) <<<<<<<<|| CLEARING SENSITIVE DATA ||>>>>>>>>
   userDataClear: async function (req, res, next) {
-    (req.user.primaryRole = undefined), (req.user.secondaryRole = undefined);
+    if (req.user) {
+      (req.user.primaryRole = undefined), (req.user.secondaryRole = undefined);
+    }
     next();
   },
 };

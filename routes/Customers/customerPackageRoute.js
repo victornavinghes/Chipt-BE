@@ -8,11 +8,11 @@ const {
 
 // Common middleware
 const packageAuthMiddleware = [
-  // authToken.isUserAuthenticated,
-  // authToken.isUserAccountActive,
-  // authToken.isUserAccountVerified,
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  authToken.isUserAccountVerified,
   // authToken.userAuthorizedRole(["super_vendor", "admin"]),
-  // authToken.userDataClear,
+  authToken.userDataClear,
 ];
 
 router.route("/").get(packageAuthMiddleware, GetAllPackagesController);

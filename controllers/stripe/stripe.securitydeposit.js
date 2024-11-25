@@ -1,21 +1,39 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-const createCheckoutSession = async (customerId, securityDepositAmount) => {
+const createCheckoutSession = async (
+  customerId,
+  securityDepositAmount,
+  addDefaultCredits
+) => {
   try {
+    const lineItems = [
+      {
+        price_data: {
+          currency: "myr",
+          product_data: {
+            name: "Membership activation",
+          },
+          unit_amount: securityDepositAmount,
+        },
+        quantity: 1,
+      },
+    ];
+
+    if (addDefaultCredits) {
+      lineItems.push({
+        price_data: {
+          currency: "myr",
+          product_data: {
+            name: "Default 30 Credits",
+          },
+          unit_amount: 1500,
+        },
+        quantity: 1,
+      });
+    }
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "mga",
-            product_data: {
-              name: "Security Deposit",
-            },
-            unit_amount: securityDepositAmount,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: "payment",
       success_url: `${process.env.CUSTOMER_BASE_URL}/wallet`,
       cancel_url: `${process.env.CUSTOMER_BASE_URL}/checkout-cancel`,
@@ -23,6 +41,7 @@ const createCheckoutSession = async (customerId, securityDepositAmount) => {
       metadata: {
         activationWallet: true,
         securityDeposit: securityDepositAmount,
+        defaultCupCredits: addDefaultCredits ? 30 : null,
       },
     });
 

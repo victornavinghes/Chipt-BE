@@ -15,6 +15,10 @@ const CustomerWalletSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  activatedOnce: {
+    type: Boolean,
+    default: false,
+  },
   isWalletActive: {
     type: Boolean,
     default: false,

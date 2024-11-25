@@ -1,4 +1,5 @@
 const CustomerWallet = require("../../models/Customer/CustomerWallet");
+const StripeTransaction = require("../../models/Orders/StripeTransactions");
 const Package = require("../../models/Package/Package");
 const PackageOrder = require("../../models/Package/PackageOrder");
 const ErrorHandler = require("../../utils/errorHandler");
@@ -17,19 +18,56 @@ const handleWebhook = async (req, res, next) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const customerId = session.client_reference_id;
+      const checkoutSessionId = session.id;
       const isActivatingWallet =
         session.metadata && session.metadata.activationWallet === "true";
       const transactionId = session.metadata.transactionId;
       const paymentIntentId = session.payment_intent;
+      const defaultCupCredits = session.metadata.defaultCupCredits;
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+      console.log(paymentIntent);
+      const amount = paymentIntent.amount;
+      const currency = paymentIntent.currency;
+      const status = paymentIntent.status;
+      console.log("Stripe transactions create");
+      try {
+        await StripeTransaction.create({
+          transaction_type: isActivatingWallet
+            ? "activation"
+            : "package_buying",
+          customer_id: customerId,
+          amount: amount,
+          currency: currency,
+          status: status,
+          stripe_payment_intent_id: paymentIntentId,
+          package_id: isActivatingWallet ? null : session.metadata.packageId,
+        });
+      } catch (err) {
+        console.error("Error creating StripeTransaction:", err);
+        throw new ErrorHandler(
+          `Failed to create StripeTransaction: ${err.message}`,
+          500
+        );
+      }
 
+      console.log("Stripe transactions added");
       if (isActivatingWallet) {
+        const updateFields = {
+          isWalletActive: true,
+          securityDeposit: session.metadata.securityDeposit,
+          securityDepositPaymentIntentId: paymentIntentId,
+          activatedOnce: true,
+        };
+
+        if (defaultCupCredits) {
+          updateFields.cupCredits = defaultCupCredits;
+        }
+
         await CustomerWallet.findOneAndUpdate(
           { customer: customerId },
-          {
-            isWalletActive: true,
-            securityDeposit: session.metadata.securityDeposit,
-            securityDepositPaymentIntentId: paymentIntentId,
-          }
+          updateFields
         );
       }
       if (session.metadata.type === "package") {
@@ -37,6 +75,7 @@ const handleWebhook = async (req, res, next) => {
         const packageId = session.metadata.packageId;
         try {
           await updateCustomerWallet(customerId, priceId);
+
           await PackageOrder.create({
             customerId,
             packageId,

@@ -32,19 +32,21 @@ const googleMapsClient = require("@google/maps").createClient({
 // MiddleWare Imports
 const errorMiddleware = require("./errors/error.js");
 const APIRouteTable = require("./routes/APIRouteTable.js");
+const Customer = require("./models/Customer/Customer.js");
+const CustomerWallet = require("./models/Customer/CustomerWallet.js");
 
 // Job Scheduler
-cron.schedule("0 */12 * * *", async () => {
-  const order = await Orders.find({
-    orderStatus: "pending",
-    orderTime: { $lt: Date.now() },
-  });
-  await Orders.updateMany(
-    { orderStatus: "pending", orderTime: { $lt: Date.now() } },
-    { orderStatus: "failed" }
-  );
-  console.log("Order status updated");
-});
+// cron.schedule("0 */12 * * *", async () => {
+//   const order = await Orders.find({
+//     orderStatus: "pending",
+//     orderTime: { $lt: Date.now() },
+//   });
+//   await Orders.updateMany(
+//     { orderStatus: "pending", orderTime: { $lt: Date.now() } },
+//     { orderStatus: "failed" }
+//   );
+//   console.log("Order status updated");
+// });
 
 cron.schedule("0 0 */2 * *", async () => {
   //   const cups = await Cups.find({currentCustomer: {$ne: undefined}});
@@ -79,6 +81,74 @@ cron.schedule("0 0 */2 * *", async () => {
     } catch (error) {
       return next(new ErrorHandler(err.message, 500));
     }
+  }
+});
+
+cron.schedule("0 */12 * * *", async () => {
+  console.log("Running cron job to check for overdue cup returns");
+
+  try {
+    const overdueCups = await Cups.find({
+      isOrderable: false,
+      orderDate: { $lt: new Date() },
+      currentCustomer: { $ne: null },
+      isActive: true,
+    })
+      .select("cupID currentCustomer orderDate")
+      .populate("cupID", "cupSize cupType returnTime")
+      .populate("currentCustomer", "primaryEmail isBlocked");
+
+    for (const userCup of overdueCups) {
+      const returnDate =
+        userCup.cupID.returnTime * 86400000 + userCup.orderDate.getTime();
+      const overdue = new Date() > new Date(returnDate);
+
+      if (overdue && !userCup.currentCustomer.isBlocked) {
+        // Block the customer
+        const customer = await Customer.findById(userCup.currentCustomer._id);
+        const wallet = await CustomerWallet.find({
+          customer: currentCustomer._id,
+        });
+        if (wallet) {
+          wallet.securityDeposit = 0;
+          wallet.isWalletActive = false;
+          await wallet.save();
+        }
+        if (customer) {
+          customer.isBlocked = true;
+          await customer.save();
+          // Send email notification
+          const message = `Dear customer,\n\nCup ${
+            userCup.cupID.cupType.charAt(0).toUpperCase() +
+            userCup.cupID.cupType.slice(1)
+          } (size: ${
+            userCup.cupID.cupSize.charAt(0).toUpperCase() +
+            userCup.cupID.cupSize.slice(1)
+          }) ordered by you on ${new Date(
+            userCup.orderDate
+          ).toDateString()} is overdue for return. Please return it as soon as possible. Your account has been blocked due to this overdue.\n\nThanks,\nChipt Asia`;
+          try {
+            await sendEmail({
+              email: userCup.currentCustomer.primaryEmail,
+              subject: "Chipt Cup Return Overdue - Account Blocked",
+              message,
+            });
+            console.log(
+              `Email sent to ${userCup.currentCustomer.primaryEmail}`
+            );
+          } catch (error) {
+            console.error(
+              `Failed to send email to ${userCup.currentCustomer.primaryEmail}:`,
+              error.message
+            );
+          }
+        }
+      }
+    }
+
+    console.log("Cron job completed");
+  } catch (error) {
+    console.error("Error running cron job:", error);
   }
 });
 
