@@ -1368,10 +1368,11 @@ exports.checkUserCreditForVendor = CatchAsync(async (req, res, next) => {
   const storeCupsStock = await StoreCupsStock.findOne({
     vendor: vendorId,
   }).populate("cups.cupID");
-  if (!storeCupsStock) {
+
+  if (!storeCupsStock || storeCupsStock.cups.length === 0) {
     return res.status(200).json({
       success: false,
-      message: "Store cups stock not found",
+      message: "Store cups stock not found or empty",
     });
   }
 
