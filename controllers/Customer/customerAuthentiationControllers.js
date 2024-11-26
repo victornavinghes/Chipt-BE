@@ -21,6 +21,9 @@ const ApiFeatures = require("../../utils/apiFeatures.js");
 const Customers = require("../../models/Customer/Customer.js");
 const InAppNotification = require("../../models/Notification/InAppNotification.js");
 const firebaseAdmin = require("../../config/firebase/firebaseConfig.js");
+const Vendors = require("../../models/Vendors/Vendor.js");
+const CustomerWallet = require("../../models/Customer/CustomerWallet.js");
+const StoreCupsStock = require("../../models/Vendors/StoreCupsStock.js");
 
 /* 
     Modules Indexes
@@ -1331,3 +1334,58 @@ exports.projectName_Customer_Account_Status = CatchAsync(
     }
   }
 );
+
+exports.checkUserCreditForVendor = CatchAsync(async (req, res, next) => {
+  const { vendorId } = req.params;
+  const customerId = req.user.id;
+
+  const vendor = await Vendors.findById(vendorId);
+  if (!vendor) {
+    return res.status(200).json({
+      success: false,
+      message: "Vendor not found",
+    });
+  }
+
+  const wallet = await CustomerWallet.findOne({
+    customer: customerId,
+    isWalletActive: true,
+  });
+  if (!wallet) {
+    return res.status(200).json({
+      success: false,
+      message: "Wallet not found",
+    });
+  }
+
+  if (wallet.cupCredits === 0) {
+    return res.status(200).json({
+      success: true,
+      userHaveCredit: false,
+    });
+  }
+
+  const storeCupsStock = await StoreCupsStock.findOne({
+    vendor: vendorId,
+  }).populate("cups.cupID");
+  if (!storeCupsStock) {
+    return res.status(200).json({
+      success: false,
+      message: "Store cups stock not found",
+    });
+  }
+
+  const cups = storeCupsStock.cups.map((cup) => cup.cupID);
+
+  const lowestCup = cups.reduce(
+    (min, cup) => (cup.cupPrice < min.cupPrice ? cup : min),
+    cups[0]
+  );
+
+  const userHaveCredit = wallet.cupCredits >= lowestCup.cupPrice;
+
+  res.status(200).json({
+    success: true,
+    userHaveCredit,
+  });
+});

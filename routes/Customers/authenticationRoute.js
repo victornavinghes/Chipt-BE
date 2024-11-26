@@ -216,4 +216,11 @@ router
     customerAuthentication.projectName_Customer_Account_Status
   );
 
+router
+  .route("/check-credit/:vendorId")
+  .get(
+    authToken.isUserAuthenticated,
+    customerAuthentication.checkUserCreditForVendor
+  );
+
 module.exports = router;
