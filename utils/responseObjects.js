@@ -309,25 +309,11 @@ exports.customerResponses = {
       _id: user._id,
       isActive: user.accountActive,
       isVerified: user.accountVerified,
-      username: user.username ? user.username : null,
-      firstname: user.firstname ? user.firstname : "",
-      middlename: user.middlename ? user.middlename : "",
-      lastname: user.lastname ? user.lastname : "",
-      gender: user.gender
-        ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1)
-        : null,
-      dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
+      name: user.name ? user.name : null,
       profilePicture: user.profilePicture ? user.profilePicture : null,
-      email: user.primaryEmail ? user.primaryEmail : null,
+      primaryEmail: user.primaryEmail ? user.primaryEmail : null,
       countryCode: user.countryCode ? user.countryCode : null,
       contact: user.primaryContactNumber ? user.primaryContactNumber : null,
-      plotnumber: user.plotnumber ? user.plotnumber : null,
-      address: user.address ? user.address : null,
-      city: user.city ? user.city : null,
-      state: user.state ? user.state : null,
-      country: user.country ? user.country : null,
-      zipCode: user.zipCode ? user.zipCode : null,
-      location: user.location ? user.location.coordinates : null,
     };
     resData.customer = customer;
     res.status(statusCode).json(resData);

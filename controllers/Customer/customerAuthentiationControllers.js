@@ -967,55 +967,40 @@ exports.projectName_Customer_Account_Contact_Update = CatchAsync(
 // 14) ✅ CUSTOMER: Basic information update
 exports.projectName_Customer_Account_Basic_Information_Update = CatchAsync(
   async (req, res, next) => {
-    // a) Fetching vendor details and checking if it exist
-    const customer = await Customers.findById({ _id: req.user.id }).select(
-      "+accountActive +accountVerified username +firstname +middlename +lastname +dateOfBirth profilePicture primaryEmail +gender countryCode primaryContactNumber +plotnumber +address +city +state +country +zipCode location"
+    // a) Fetching customer details and checking if it exists
+    const customer = await Customers.findById(req.user.id).select(
+      "+accountActive +accountVerified name primaryEmail"
     );
     if (!customer) {
       return next(new ErrorHandler("No customer information found.", 404));
     }
 
-    // b) Saving details
-    customer.firstname = req.body.firstname
-      ? req.body.firstname.toLowerCase()
-      : customer.firstname
-      ? customer.firstname.toLowerCase()
-      : undefined;
-    customer.middlename = req.body.middlename
-      ? req.body.middlename.toLowerCase()
-      : customer.middlename
-      ? customer.middlename.toLowerCase()
-      : undefined;
-    customer.lastname = req.body.lastname
-      ? req.body.lastname.toLowerCase()
-      : customer.lastname
-      ? customer.lastname.toLowerCase()
-      : undefined;
-    customer.dateOfBirth = req.body.dateOfBirth
-      ? req.body.dateOfBirth
-      : customer.dateOfBirth
-      ? customer.dateOfBirth
-      : undefined;
-    customer.gender = req.body.gender
-      ? req.body.gender.toLowerCase()
-      : customer.gender
-      ? customer.gender.toLowerCase()
-      : undefined;
+    // b) Validating input
+    const { name, primaryEmail } = req.body;
+    if (!name && !primaryEmail) {
+      return next(
+        new ErrorHandler("Please provide name or email to update.", 400)
+      );
+    }
+
+    // c) Updating details
+    if (name) customer.name = name.toLowerCase();
+    if (primaryEmail) customer.primaryEmail = primaryEmail.toLowerCase();
+
     await customer.save();
 
-    // c) Sending response
+    // d) Sending response
     utilsMiddleware.sendNotificationToUser(
       false,
       "customer",
       null,
       customer._id,
       "Basic information update",
-      `Your account baisc information has been updated.`
+      `Your account basic information has been updated.`
     );
     customerResponses.customerProfileInformation(res, 200, customer, false);
   }
 );
-
 // 15) ✅ CUSTOMER: Address update
 exports.projectName_Customer_Account_Address_Update = CatchAsync(
   async (req, res, next) => {
@@ -1353,8 +1338,8 @@ exports.checkUserCreditForVendor = CatchAsync(async (req, res, next) => {
   });
   if (!wallet) {
     return res.status(200).json({
-      success: false,
-      message: "Wallet not found",
+      success: true,
+      userHaveCredit: false,
     });
   }
 
