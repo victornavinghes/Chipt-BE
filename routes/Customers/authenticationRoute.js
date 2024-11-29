@@ -220,6 +220,7 @@ router
   .route("/check-credit/:vendorId")
   .get(
     authToken.isUserAuthenticated,
+    authToken.userAuthorizedRole(["customer", "customer"]),
     customerAuthentication.checkUserCreditForVendor
   );
 

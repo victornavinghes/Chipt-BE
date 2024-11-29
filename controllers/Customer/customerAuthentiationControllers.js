@@ -817,7 +817,7 @@ exports.projectName_Customer_Account_Informations = CatchAsync(
 
     // b) Fetching vendor details and checking if it exist
     const customer = await Customers.findById({ _id: customerID }).select(
-      "+accountActive +accountVerified username +firstname +middlename +lastname +dateOfBirth profilePicture primaryEmail +gender countryCode primaryContactNumber +plotnumber +address +city +state +country +zipCode location"
+      "+accountActive +accountVerified name profilePicture countryCode primaryContactNumber primaryEmail"
     );
     if (!customer) {
       return next(new ErrorHandler("No customer information found.", 404));
