@@ -297,10 +297,12 @@ exports.Customer_Send_Otp = CatchAsync(async (req, res, next) => {
   }
 
   try {
-    await client.verify.services(serviceSid).verifications.create({
-      to: phoneNumber,
-      channel: "sms",
-    });
+    await twilioClient.verify.v2
+      .services(twilioServiceSid)
+      .verifications.create({
+        to: phoneNumber,
+        channel: "sms",
+      });
     res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     return next(new ErrorHandler("Failed to send OTP", 500));
@@ -317,8 +319,8 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
   }
 
   try {
-    const verification = await client.verify
-      .services(serviceSid)
+    const verification = await twilioClient.verify.v2
+      .services(twilioServiceSid)
       .verificationChecks.create({
         to: phoneNumber,
         code: otp,
@@ -356,8 +358,6 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
         message: "Customer account is blocked",
       });
     }
-
-    console.log("customer", customer);
 
     // Sign in the customer
     authToken.userSendToken(res, 200, customer, "login", "customer");
