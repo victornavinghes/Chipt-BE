@@ -12,12 +12,7 @@ const Cups = require("./models/Cups/Cup.js");
 const sendEmail = require("./utils/sendMails.js");
 
 const app = express();
-const corsOptions = {
-  origin: process.env.API_DOMAIN,
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
+app.use(cors({ credentials: true, origin: true }));
 // Configurations
 dotenv.config({ path: "./config/config.env" });
 app.use(express.urlencoded({ extended: true }));
