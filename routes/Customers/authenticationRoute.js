@@ -27,9 +27,9 @@ const customerAuthentication = require("../../controllers/Customer/customerAuthe
         20) Profile image
 */
 
-router
-  .route("/auth")
-  .post(customerAuthentication.projectName_Customer_Firebase_Auth);
+router.route("/send-otp").post(customerAuthentication.Customer_Send_Otp);
+
+router.route("/verify-otp").post(customerAuthentication.Customer_Verify_Otp);
 
 router
   .route("/auth-signup")

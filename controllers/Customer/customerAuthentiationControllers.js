@@ -25,6 +25,12 @@ const Vendors = require("../../models/Vendors/Vendor.js");
 const CustomerWallet = require("../../models/Customer/CustomerWallet.js");
 const StoreCupsStock = require("../../models/Vendors/StoreCupsStock.js");
 
+const twilio = require("twilio");
+const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioServiceSid = process.env.TWILIO_SERVICE_SID;
+const twilioClient = twilio(twilioAccountSid, twilioAuthToken);
+
 /* 
     Modules Indexes
     01) Customer Sign up
@@ -283,6 +289,82 @@ exports.projectName_Customer_Account_Resend_OTP = CatchAsync(
     authToken.userSendToken(res, 200, customer, "signup", "customer", true);
   }
 );
+exports.Customer_Send_Otp = CatchAsync(async (req, res, next) => {
+  const { phoneNumber } = req.body;
+
+  if (!phoneNumber) {
+    return next(new ErrorHandler("Phone number is required", 400));
+  }
+
+  try {
+    await client.verify.services(serviceSid).verifications.create({
+      to: phoneNumber,
+      channel: "sms",
+    });
+    res.status(200).json({ success: true, message: "OTP sent successfully" });
+  } catch (error) {
+    return next(new ErrorHandler("Failed to send OTP", 500));
+  }
+});
+
+exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
+  const { countryCode, phoneNumber, otp } = req.body;
+
+  if (!countryCode || !phoneNumber || !otp) {
+    return next(
+      new ErrorHandler("Contry Code, Phone number and OTP are required", 400)
+    );
+  }
+
+  try {
+    const verification = await client.verify
+      .services(serviceSid)
+      .verificationChecks.create({
+        to: phoneNumber,
+        code: otp,
+      });
+
+    if (verification.status !== "approved") {
+      return next(new ErrorHandler("Invalid OTP", 400));
+    }
+
+    const contactNumber = phoneNumber.replace(countryCode, "");
+
+    // console.log("countryCode", countryCode);
+    // console.log("contactNumber", contactNumber);
+
+    // Check if the customer exists in the database
+    const customer = await Customers.findOne({
+      primaryContactNumber: parseInt(contactNumber),
+      countryCode: parseInt(countryCode),
+    }).select(
+      "+isBlocked profilePicture name primaryEmail primaryContactNumber countryCode"
+    );
+
+    if (!customer) {
+      return res.status(200).json({
+        success: false,
+        customerNotFound: true,
+        message: "Customer does not exist",
+      });
+    }
+
+    if (customer.isBlocked) {
+      return res.status(200).json({
+        success: false,
+        blocked: true,
+        message: "Customer account is blocked",
+      });
+    }
+
+    console.log("customer", customer);
+
+    // Sign in the customer
+    authToken.userSendToken(res, 200, customer, "login", "customer");
+  } catch (error) {
+    return next(new ErrorHandler("Failed to verify OTP", 500));
+  }
+});
 
 exports.projectName_Customer_Firebase_Auth = CatchAsync(
   async (req, res, next) => {
