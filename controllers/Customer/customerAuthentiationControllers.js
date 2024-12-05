@@ -296,6 +296,15 @@ exports.Customer_Send_Otp = CatchAsync(async (req, res, next) => {
     return next(new ErrorHandler("Phone number is required", 400));
   }
 
+  if (
+    process.env.TEST_NUMBER &&
+    process.env.TEST_COUNTRY_CODE &&
+    phoneNumber === `${process.env.TEST_COUNTRY_CODE}${process.env.TEST_NUMBER}`
+  ) {
+    return res
+      .status(200)
+      .json({ success: true, message: "OTP sent successfully" });
+  }
   try {
     await twilioClient.verify.v2
       .services(twilioServiceSid)
@@ -314,8 +323,45 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
 
   if (!countryCode || !phoneNumber || !otp) {
     return next(
-      new ErrorHandler("Contry Code, Phone number and OTP are required", 400)
+      new ErrorHandler("Country Code, Phone number and OTP are required", 400)
     );
+  }
+
+  if (
+    process.env.TEST_COUNTRY_CODE &&
+    process.env.TEST_NUMBER &&
+    process.env.TEST_OTP &&
+    countryCode === process.env.TEST_COUNTRY_CODE &&
+    phoneNumber === process.env.TEST_NUMBER &&
+    otp === process.env.TEST_OTP
+  ) {
+    const contactNumber = phoneNumber.replace(countryCode, "");
+
+    const customer = await Customers.findOne({
+      primaryContactNumber: parseInt(contactNumber),
+      countryCode: parseInt(countryCode),
+    }).select(
+      "+isBlocked profilePicture name primaryEmail primaryContactNumber countryCode"
+    );
+
+    if (!customer) {
+      return res.status(200).json({
+        success: false,
+        customerNotFound: true,
+        message: "Customer does not exist",
+      });
+    }
+
+    if (customer.isBlocked) {
+      return res.status(200).json({
+        success: false,
+        blocked: true,
+        message: "Customer account is blocked",
+      });
+    }
+
+    // Sign in the customer
+    return authToken.userSendToken(res, 200, customer, "login", "customer");
   }
 
   try {
@@ -332,10 +378,6 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
 
     const contactNumber = phoneNumber.replace(countryCode, "");
 
-    // console.log("countryCode", countryCode);
-    // console.log("contactNumber", contactNumber);
-
-    // Check if the customer exists in the database
     const customer = await Customers.findOne({
       primaryContactNumber: parseInt(contactNumber),
       countryCode: parseInt(countryCode),
@@ -365,7 +407,6 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
     return next(new ErrorHandler("Failed to verify OTP", 500));
   }
 });
-
 exports.projectName_Customer_Firebase_Auth = CatchAsync(
   async (req, res, next) => {
     const { token, countryCode } = req.body;
