@@ -42,7 +42,6 @@ const CustomerAuthSchema = new mongoose.Schema(
     },
     primaryEmail: {
       type: String,
-      unique: true,
     },
     secondaryEmail: {
       type: String,
