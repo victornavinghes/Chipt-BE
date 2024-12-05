@@ -332,7 +332,8 @@ exports.Customer_Verify_Otp = CatchAsync(async (req, res, next) => {
     process.env.TEST_NUMBER &&
     process.env.TEST_OTP &&
     countryCode === process.env.TEST_COUNTRY_CODE &&
-    phoneNumber === process.env.TEST_NUMBER &&
+    phoneNumber ===
+      `${process.env.TEST_COUNTRY_CODE}${process.env.TEST_NUMBER}` &&
     otp === process.env.TEST_OTP
   ) {
     const contactNumber = phoneNumber.replace(countryCode, "");
