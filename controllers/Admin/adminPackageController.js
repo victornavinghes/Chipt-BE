@@ -1,44 +1,22 @@
 const catchAsync = require("../../errors/catchAsync");
 const Package = require("../../models/Package/Package");
 const ErrorHandler = require("../../utils/errorHandler");
-const {
-  createStripeProduct,
-  updateStripeProduct,
-  deleteStripeProduct,
-} = require("../stripe/Stripe.package");
 
 const AddPackageController = catchAsync(async (req, res, next) => {
-  const {
-    name,
-    description,
-    numberOfCups,
-    price,
-    validity,
-    freeCupCredits,
-    totalCredits,
-    creditsPerCup,
-    isActive,
-  } = req.body;
+  const { name, description, price, freeCupCredits, totalCredits, isActive } =
+    req.body;
 
-  if (!name || !numberOfCups || !price || !totalCredits || !creditsPerCup) {
+  if (!name || !price || !totalCredits) {
     return next(new ErrorHandler(`Please provide all required details`, 400));
   }
-
-  const StripeProduct = await createStripeProduct(name, description, price);
-  console.log(StripeProduct);
 
   const newPackage = new Package({
     name,
     description,
-    numberOfCups,
     price,
-    validity,
     freeCupCredits,
     totalCredits,
-    creditsPerCup,
     isActive,
-    stripeProductId: StripeProduct.stripeProductId,
-    stripePriceId: StripeProduct.stripePriceId,
   });
 
   await newPackage.save();
@@ -60,19 +38,10 @@ const GetAllPackagesController = catchAsync(async (req, res, next) => {
 
 const UpdatePackageController = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const {
-    name,
-    description,
-    numberOfCups,
-    price,
-    validity,
-    freeCupCredits,
-    totalCredits,
-    creditsPerCup,
-    isActive,
-  } = req.body;
+  const { name, description, price, freeCupCredits, totalCredits, isActive } =
+    req.body;
 
-  if (!name || !numberOfCups || !price || !totalCredits || !creditsPerCup) {
+  if (!name || !price || !totalCredits) {
     return next(new ErrorHandler(`Please provide all required details`, 400));
   }
 
@@ -82,24 +51,14 @@ const UpdatePackageController = catchAsync(async (req, res, next) => {
     return next(new ErrorHandler(`Package not found with id ${id}`, 404));
   }
 
-  await updateStripeProduct(
-    packageToUpdate.stripeProductId,
-    name,
-    description,
-    price
-  );
-
   const updatedPackage = await Package.findByIdAndUpdate(
     id,
     {
       name,
       description,
-      numberOfCups,
       price,
-      validity,
       freeCupCredits,
       totalCredits,
-      creditsPerCup,
       isActive,
     },
     { new: true, runValidators: true }
@@ -121,14 +80,11 @@ const DeletePackageController = catchAsync(async (req, res, next) => {
     return next(new ErrorHandler(`Package not found with id ${id}`, 404));
   }
 
-  console.log(packageToDelete);
-  await deleteStripeProduct(packageToDelete.stripeProductId);
-
   await Package.findByIdAndDelete(id);
 
   res.status(200).json({
     success: true,
-    message: "Package and associated Stripe product deleted",
+    message: "Package deleted",
   });
 });
 
