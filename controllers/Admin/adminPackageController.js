@@ -63,7 +63,6 @@ const UpdatePackageController = catchAsync(async (req, res, next) => {
     },
     { new: true, runValidators: true }
   );
-
   res.status(200).json({
     success: true,
     message: "Package updated",

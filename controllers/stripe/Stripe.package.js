@@ -62,23 +62,27 @@ async function deleteStripeProduct(productId) {
   }
 }
 
-async function createPackageCheckoutSession(priceId, customerId, packageId) {
+async function createPackageCheckoutSession(
+  stripePriceId,
+  customerId,
+  packageId
+) {
   const transactionId = uuidv4();
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
       {
-        price: priceId,
+        price: stripePriceId,
         quantity: 1,
       },
     ],
     mode: "payment",
     client_reference_id: customerId,
-    success_url: `${process.env.CUSTOMER_BASE_URL}/wallet`,
+    success_url: `${process.env.CUSTOMER_BASE_URL}/packages`,
     cancel_url: `${process.env.CUSTOMER_BASE_URL}/cancel`,
     metadata: {
       type: "package",
-      priceId: priceId,
+      priceId: stripePriceId,
       packageId,
       transactionId,
     },

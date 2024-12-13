@@ -36,6 +36,7 @@ const GetWalletController = catchAsync(async (req, res, next) => {
   const wallet = await CustomerWallet.findOne({
     customer: customerId,
   }).lean();
+
   if (!wallet) {
     return next(
       new ErrorHandler(`Wallet not found for customer ID: ${customerId}`, 404)

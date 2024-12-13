@@ -164,7 +164,7 @@ const authToken = {
     if (!req.user.stateStatus) {
       return res.status(200).json({
         success: false,
-        message: `Account is not active.`,
+        message: `Account is not verified.`,
       });
     }
     next();
