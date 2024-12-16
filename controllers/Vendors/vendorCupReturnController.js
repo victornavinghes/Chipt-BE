@@ -28,7 +28,9 @@ exports.projectName_Vendor_Checking_Cup_Return_Condition = catchAsync(
     const cupHistory = await Cups.findOne({
       cupModelUniqueId: modelID,
       cupUniqueId: uniqueID,
-    }).populate("cupID").select("+returnTime");
+    })
+      .populate("cupID")
+      .select("+returnTime");
     let returning_time = cupHistory.cupID.returnTime * 86400000;
 
     if (!cupHistory) {
@@ -65,14 +67,26 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
     // a) Destructuring data
     const { modelID, uniqueID } = req.body;
 
-    const cupHistory = await Cups.findOne({ cupModelUniqueId: modelID, cupUniqueId: uniqueID })
-      .populate("cupID").select("+returnTime")
+    if (!modelID || !uniqueID) {
+      return next(new ErrorHandler("Please provide modelID and uniqueID", 400));
+    }
+
+    const cupHistory = await Cups.findOne({
+      cupModelUniqueId: modelID,
+      cupUniqueId: uniqueID,
+    })
+      .populate("cupID")
+      .select("+returnTime");
+
+    if (!cupHistory) {
+      return next(new ErrorHandler("Something went wrong", 404));
+    }
 
     if (cupHistory.isOrderable) {
       return res.status(200).json({
         success: false,
-        message: 'Cup has been returned.'
-      })
+        message: "Cup has been returned.",
+      });
     }
 
     // Checking return condition
@@ -81,25 +95,29 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
     if (orderTime >= returnDate) {
       return res.status(200).json({
         success: false,
-        message: `Cup return time period has been passed!`
-      })
+        message: `Cup return time period has been passed!`,
+      });
     }
 
     const order = await Orders.findOne({
       customer: cupHistory.currentCustomer,
       cupModelUniqueId: modelID,
       cupUniqueId: uniqueID,
-      orderStatus: 'success',
+      orderStatus: "success",
       fromVendor: cupHistory.currentVendor,
-      isReturned: false
-    }).select('+returnedVendor +isReturned');
+      isReturned: false,
+    }).select("+returnedVendor +isReturned");
 
     if (!order) {
       return next(new ErrorHandler("Something went wrong", 404));
     }
 
-    const vendorData = await Vendors.findById({ _id: req.user.id }).select('+storeCupsStock')
-    let vendorStock = await VendorStoreStocks.findOne({ _id: vendorData.storeCupsStock })
+    const vendorData = await Vendors.findById({ _id: req.user.id }).select(
+      "+storeCupsStock"
+    );
+    let vendorStock = await VendorStoreStocks.findOne({
+      _id: vendorData.storeCupsStock,
+    });
 
     let CupNewHistory = {
       customer: cupHistory.currentCustomer,
@@ -108,7 +126,7 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
       purchaseDate: order.orderTime,
       returnVendor: vendorData._id,
       returnDate: Date.now(),
-    }
+    };
 
     if (!vendorStock) {
       const stID = await VendorStoreStock.create({
@@ -117,20 +135,20 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
         cups: [
           {
             cupID: cupHistory.cupID._id,
-            numberOfCups: 1
-          }
-        ]
-      })
+            numberOfCups: 1,
+          },
+        ],
+      });
       vendorData.storeCupsStock = stID._id;
       await vendorData.save();
     } else {
-      let cupExist = false
+      let cupExist = false;
       for (let i = 0; i < vendorStock.cups.length; i++) {
         let vendorCupCheck = vendorStock.cups[i].cupID.toString();
-        let orderCupCheck = cupHistory.cupID._id.toString()
+        let orderCupCheck = cupHistory.cupID._id.toString();
         if (vendorCupCheck === orderCupCheck) {
-          vendorStock.cups[i].numberOfCups += 1
-          cupExist = true
+          vendorStock.cups[i].numberOfCups += 1;
+          cupExist = true;
           break;
         }
       }
@@ -138,10 +156,9 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
       if (!cupExist) {
         let temp = {
           cupID: cupHistory.cupID._id,
-          numberOfCups: 1
-        }
-        vendorStock.cups.push(temp)
-
+          numberOfCups: 1,
+        };
+        vendorStock.cups.push(temp);
       }
       await vendorStock.save();
     }
@@ -161,11 +178,11 @@ exports.projectName_Vendor_Detagging_Tagging_Information_Of_Cup = catchAsync(
     // Sending response
     res.status(200).json({
       success: true,
-      message: 'Cup return successful!',
-      vendorStock
-    })
-  })
-
+      message: "Cup return successful!",
+      vendorStock,
+    });
+  }
+);
 
 // 04) CUSTOMER: Cup returning payment
 exports.projectName_Vendor_Cup_Return_Payment_To_Customer = catchAsync(
@@ -228,7 +245,7 @@ exports.projectName_Vendor_Single_Cup_Details_After_Scan = catchAsync(
     const { uniqueID } = req.body;
     // Fetching data
     const isCupData = await Cups.findOne({
-      cupUniqueId: "CUP" + uniqueID.split(":").join("").toUpperCase(),
+      cupUniqueId: uniqueID,
     })
       .populate(
         "currentVendor",
@@ -238,6 +255,17 @@ exports.projectName_Vendor_Single_Cup_Details_After_Scan = catchAsync(
         "currentCustomer",
         "firstname, middlename lastname profilePicture"
       );
+    // const isCupData = await Cups.findOne({
+    //   cupUniqueId: "CUP" + uniqueID.split(":").join("").toUpperCase(),
+    // })
+    //   .populate(
+    //     "currentVendor",
+    //     "profilePicture name plotnumber address city state country zipCode"
+    //   )
+    //   .populate(
+    //     "currentCustomer",
+    //     "firstname, middlename lastname profilePicture"
+    //   );
     if (!isCupData) {
       return next(new ErrorHandler("No cup data found", 404));
     }
@@ -269,7 +297,7 @@ exports.projectName_Vendor_Single_Cup_Details_After_Scan = catchAsync(
       returnObject.isOrderable = isCupData.isOrderable;
       returnObject.vendor = isCupData.currentVendor;
       if (!isCupData.isOrderable) {
-        returnObject.orderDate = isCupData.orderDate
+        returnObject.orderDate = isCupData.orderDate;
         returnObject.customer = isCupData.currentCustomer;
       }
     }
