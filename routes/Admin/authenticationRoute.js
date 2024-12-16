@@ -60,16 +60,14 @@ router
   );
 
 // 06) ✅ ADMIN: Password update
-router
-  .route("/password/change")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["super_vendor", "admin"]),
-    authToken.userDataClear,
-    AdminAuthenticationController.projectName_Admin_Account_Password_Change
-  );
+router.route("/password/change").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["super_vendor", "admin"]),
+  authToken.userDataClear,
+  AdminAuthenticationController.projectName_Admin_Account_Password_Change
+);
 
 // 07) ✅ ADMIN: Forgot password
 router
@@ -91,51 +89,43 @@ router
   .put(AdminAuthenticationController.projectName_Admin_Account_Reset_Password);
 
 // 10) ✅ ADMIN: Profile information
-router
-  .route("/profile/details")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["super_vendor", "admin"]),
-    authToken.userDataClear,
-    AdminAuthenticationController.projectName_Admin_Profile_Information
-  );
+router.route("/profile/details").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["super_vendor", "admin"]),
+  authToken.userDataClear,
+  AdminAuthenticationController.projectName_Admin_Profile_Information
+);
 
 // 11) ✅ ADMIN: Profile information update
-router
-  .route("/profile/update")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["super_vendor", "admin"]),
-    authToken.userDataClear,
-    AdminAuthenticationController.projectName_Admin_Profile_Information_Update
-  );
+router.route("/profile/update").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["super_vendor", "admin"]),
+  authToken.userDataClear,
+  AdminAuthenticationController.projectName_Admin_Profile_Information_Update
+);
 
 // 12) ✅ ADMIN: Profile image upload
-router
-  .route("/profile/image/upload")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["super_vendor", "admin"]),
-    authToken.userDataClear,
-    AdminAuthenticationController.projectName_Admin_Account_Profile_Image_Upload
-  );
+router.route("/profile/image/upload").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["super_vendor", "admin"]),
+  authToken.userDataClear,
+  AdminAuthenticationController.projectName_Admin_Account_Profile_Image_Upload
+);
 
 // 13) ✅ ADMIN: Profile image delete
-router
-  .route("/profile/image/delete")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["super_vendor", "admin"]),
-    authToken.userDataClear,
-    AdminAuthenticationController.projectName_Admin_Account_Profile_Image_Delete
-  );
+router.route("/profile/image/delete").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["super_vendor", "admin"]),
+  authToken.userDataClear,
+  AdminAuthenticationController.projectName_Admin_Account_Profile_Image_Delete
+);
 
 module.exports = router;

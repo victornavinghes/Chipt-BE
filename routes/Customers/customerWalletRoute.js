@@ -14,7 +14,7 @@ const {
 const packageAuthMiddleware = [
   authToken.isUserAuthenticated,
   authToken.isUserAccountActive,
-  // authToken.isUserAccountVerified,
+  // //authToken.isUserAccountVerified,
   authToken.userAuthorizedRole(["customer", "customer"]),
   authToken.userDataClear,
 ];

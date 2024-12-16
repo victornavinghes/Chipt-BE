@@ -24,46 +24,40 @@ const logOrderController = require("../../controllers/Customer/CustomerLogContro
 */
 
 // 01) CUSTOMER: Cup Details after Scan
-router
-  .route("/scanned/cup/details/:id")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Scanned_Cup_Preview_Detail
-  );
+router.route("/scanned/cup/details/:id").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Scanned_Cup_Preview_Detail
+);
 
 // 02) CUSTOMER: New transactions
-router
-  .route("/new/transaction")
-  .post(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_New_Transaction
-  );
+router.route("/new/transaction").post(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_New_Transaction
+);
 
 // 03) CUSTOMER: New coffee order
-router
-  .route("/new/order")
-  .post(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_New_Coffee_Order
-  );
+router.route("/new/order").post(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_New_Coffee_Order
+);
 
 // For testing
 // router.route("/new/order").post(
 //   // authToken.isUserAuthenticated,
 //   // authToken.isUserAccountActive,
-//   // authToken.isUserAccountVerified,
+//   // //authToken.isUserAccountVerified,
 //   // authToken.userAuthorizedRole(['customer', 'customer']),
 //   // authToken.userDataClear,
 //   customerOrdersController.projectName_Customer_New_Coffee_Order
@@ -72,159 +66,133 @@ router
 router.route("/add/logs").post(logOrderController.logInteraction);
 
 // 04) CUSTOMER: All Orders
-router
-  .route("/all")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_All_Coffee_Orders
-  );
+router.route("/all").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_All_Coffee_Orders
+);
 
 // 05) CUSTOMER: All transactions
-router
-  .route("/all/transactions")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_All_Transactions_Made
-  );
+router.route("/all/transactions").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_All_Transactions_Made
+);
 
 // 06) CUSTOMER: All orders from a vendor
-router
-  .route("/:vid/all")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_All_Orders_From_A_Vendor
-  );
+router.route("/:vid/all").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_All_Orders_From_A_Vendor
+);
 
 // 07) All payments to a vendor
-router
-  .route("/:vid/all/transactions")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_All_Payments_To_A_Vendor
-  );
+router.route("/:vid/all/transactions").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_All_Payments_To_A_Vendor
+);
 
 // 08) Single order details
-router
-  .route("/details/:id")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Single_Coffee_Orders_details
-  );
+router.route("/details/:id").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Single_Coffee_Orders_details
+);
 
 // 09) Single transaction details
-router
-  .route("/transaction/:id")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Single_Transaction_Details
-  );
+router.route("/transaction/:id").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Single_Transaction_Details
+);
 
 // 10) All ordered cup details
-router
-  .route("/all/cups")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_All_Cup_Ordered_List
-  );
+router.route("/all/cups").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_All_Cup_Ordered_List
+);
 
 // 11) Ordered coffee cup information
-router
-  .route("/single/cup/details/:cid")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Ordered_Single_Cup_Information
-  );
+router.route("/single/cup/details/:cid").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Ordered_Single_Cup_Information
+);
 
 // 12) Fetching nearby vendor stores
-router
-  .route("/nearby/stores")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Nearby_Vendor_Store
-  );
+router.route("/nearby/stores").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Nearby_Vendor_Store
+);
 
 // 13) Returnable cup list
-router
-  .route("/returanble/cup/list")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Returnable_Cup_To_Vendor_List
-  );
+router.route("/returanble/cup/list").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Returnable_Cup_To_Vendor_List
+);
 
 // 14) Return condition check
-router
-  .route("/return/cup/check")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Returning_Cup_Status_Checking
-  );
+router.route("/return/cup/check").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Returning_Cup_Status_Checking
+);
 
 // 15) Return cup detagging
-router
-  .route("/retutn/vednor/cup")
-  .put(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_DeTagging_Tagging_Information_Of_Cup
-  );
+router.route("/retutn/vednor/cup").put(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_DeTagging_Tagging_Information_Of_Cup
+);
 
 // 15) Return cup detagging
-router
-  .route("/fetching/returnable/cups")
-  .get(
-    authToken.isUserAuthenticated,
-    authToken.isUserAccountActive,
-    authToken.isUserAccountVerified,
-    authToken.userAuthorizedRole(["customer", "customer"]),
-    authToken.userDataClear,
-    customerOrdersController.projectName_Customer_Fetching_Returnable_Cups
-  );
+router.route("/fetching/returnable/cups").get(
+  authToken.isUserAuthenticated,
+  authToken.isUserAccountActive,
+  //authToken.isUserAccountVerified,
+  authToken.userAuthorizedRole(["customer", "customer"]),
+  authToken.userDataClear,
+  customerOrdersController.projectName_Customer_Fetching_Returnable_Cups
+);
 
 module.exports = router;

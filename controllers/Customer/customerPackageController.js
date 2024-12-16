@@ -12,10 +12,15 @@ const { createPackageCheckoutSession } = require("../stripe/Stripe.package");
 const { refundSecurityDeposit } = require("../stripe/stripe.securitydeposit");
 
 const GetAllPackagesController = catchAsync(async (req, res, next) => {
+  const customerId = req.user.id;
+  const wallet = await CustomerWallet.findOne({ customer: customerId });
+  const membership =
+    wallet && wallet.isWalletActive && wallet.securityDeposit >= 15;
   const packages = await Package.find({ isActive: true });
   res.status(200).json({
     success: true,
     data: packages,
+    membership: membership,
   });
 });
 
