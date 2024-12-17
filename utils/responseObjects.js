@@ -113,11 +113,11 @@ exports.userAuthenticationResponses = {
         state: user.state,
         country: user.country,
         zipCode: user.zipCode,
+        location: user.location,
       };
       if (user.secondaryEmail) data.secondaryEmail = user.secondaryEmail;
       if (user.secondaryContactNumber)
         data.secondaryContactNumber = user.secondaryContactNumber;
-      if (user.location) data.location = user.location;
     } else if (userCategory === "customer") {
       data = {
         _id: user._id,

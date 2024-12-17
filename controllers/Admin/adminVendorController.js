@@ -279,7 +279,7 @@ exports.projectName_Admin_Single_Vendor_Information = CatchAsync(
     // b) Fetching all vendors
     const vendor = await Vendors.findById({ _id: vendorID })
       .select(
-        "+registrationID +name primaryEmail username +countryCode +primaryContactNumber profilePicture +accountActive +plotnumber +address +city +state +country +zipCode"
+        "+registrationID +name primaryEmail username +countryCode +primaryContactNumber profilePicture +accountActive +plotnumber +address +city +state +country +zipCode location"
       )
       .catch((err) => {
         return next(new ErrorHandler(`Something went wrong`, 200));
@@ -288,8 +288,7 @@ exports.projectName_Admin_Single_Vendor_Information = CatchAsync(
       return next(new ErrorHandler(`Vendor not found`, 200));
     }
 
-    // c) Sending response
-    const isList = false;
+    console.log(vendor);
     userAuthenticationResponses.userProfileInformationResponse(
       res,
       200,
