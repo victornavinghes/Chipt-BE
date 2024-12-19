@@ -756,10 +756,10 @@ exports.projectName_Upload_Cup_Details_Using_CSV_Data = CatchAsync(
     let csvData = uploadedCSV;
 
     // Checking length of input
-    if (csvData.length > 1000) {
+    if (csvData.length > 1500) {
       return res.status(400).json({
         success: false,
-        message: `Please provide less data then 1000!`,
+        message: `Please provide less data then 1500!`,
       });
     }
 
