@@ -349,6 +349,7 @@ exports.customerResponses = {
           country: data.country ? data.country : null,
           zipCode: data.zipCode ? data.zipCode : null,
           location: data.location ? data.location.coordinates : null,
+          name: data.name,
         };
         return temp;
       });
@@ -371,7 +372,9 @@ exports.customerResponses = {
         profilePicture: users.profilePicture ? users.profilePicture : null,
         email: users.primaryEmail ? users.primaryEmail : null,
         countryCode: users.countryCode ? users.countryCode : null,
-        contact: users.primaryContactNumber ? users.primaryContactNumber : null,
+        primaryContactNumber: users.primaryContactNumber
+          ? users.primaryContactNumber
+          : null,
         plotnumber: users.plotnumber ? users.plotnumber : null,
         address: users.address ? users.address : null,
         city: users.city ? users.city : null,
@@ -379,6 +382,7 @@ exports.customerResponses = {
         country: users.country ? users.country : null,
         zipCode: users.zipCode ? users.zipCode : null,
         location: users.location ? users.location.coordinates : null,
+        name: users.name,
       };
       resData.customers = customers;
     }
