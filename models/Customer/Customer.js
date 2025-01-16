@@ -192,6 +192,10 @@ const CustomerAuthSchema = new mongoose.Schema(
       default: true,
       select: false,
     },
+    usedCoupons: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

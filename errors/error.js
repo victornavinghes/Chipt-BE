@@ -11,7 +11,7 @@ module.exports = (err, req, res, next) => {
   }
 
   // Mongoose duplicate key error
-  if (err.name === "MongoServerError") {
+  if (err.name === "MongoServerError" && err.keyValue) {
     const message = `Duplicate ${Object.keys(err.keyValue)} Entered`;
     err = new ErrorHandler(message, 400);
   }

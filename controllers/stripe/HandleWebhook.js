@@ -2,6 +2,7 @@ const stripe_secret_key = process.env.STRIPE_SECRET_KEY;
 const stripe_webhook_key = process.env.STRIPE_WEBHOOK_SECRET;
 const stripe = require("stripe")(stripe_secret_key);
 const CustomerWallet = require("../../models/Customer/CustomerWallet");
+const Customer = require("../../models/Customer/Customer");
 const StripeTransaction = require("../../models/Orders/StripeTransactions");
 const ErrorHandler = require("../../utils/errorHandler");
 
@@ -85,6 +86,15 @@ const handleWebhook = async (req, res, next) => {
         wallet.isWalletActive = true;
         wallet.securityDepositPaymentIntentId = paymentIntentId;
         await wallet.save();
+      }
+
+      if (session.metadata.couponCode === "FIRST15") {
+        const customer = await Customer.findById(customerId);
+        if (!customer.usedCoupons) {
+          customer.usedCoupons = [];
+        }
+        customer.usedCoupons.push("FIRST15");
+        await customer.save();
       }
 
       // Comment PackageOrder

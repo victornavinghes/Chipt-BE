@@ -5,6 +5,7 @@ const {
   GetAllPackagesController,
   // BuyPackageController,
   CreatePaymentIntentController,
+  CheckCouponUsageController,
 } = require("../../controllers/Customer/customerPackageController");
 
 // Common middleware
@@ -24,5 +25,9 @@ router.route("/").get(packageAuthMiddleware, GetAllPackagesController);
 router
   .route("/create-payment-intent")
   .post(packageAuthMiddleware, CreatePaymentIntentController);
+
+router
+  .route("/check-coupon-usage")
+  .post(packageAuthMiddleware, CheckCouponUsageController);
 
 module.exports = router;

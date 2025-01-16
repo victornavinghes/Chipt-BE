@@ -607,35 +607,9 @@ exports.projectName_Vendor_Account_Information_Update = CatchAsync(
     }
 
     // b) Destructuring request body and Checking if all field are provided
-    const {
-      username,
-      email,
-      name,
-      countryCode,
-      contact,
-      plotnumber,
-      address,
-      city,
-      state,
-      country,
-      zipCode,
-      location,
-    } = req.body;
-    if (
-      !username ||
-      !email ||
-      !name ||
-      !countryCode ||
-      !contact ||
-      !plotnumber ||
-      !address ||
-      !city ||
-      !state ||
-      !country ||
-      !zipCode ||
-      !location
-    ) {
-      return next(new ErrorHandler("Please provide all details", 400));
+    const { username, email } = req.body;
+    if (!username || !email) {
+      return next(new ErrorHandler("Please provide all details"), 400);
     }
 
     // c) Validating username, primaryEmail, secondaryEmail, primaryContact, secondaryContact and checking if they exists

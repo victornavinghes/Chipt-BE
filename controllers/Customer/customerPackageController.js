@@ -7,7 +7,7 @@ const Package = require("../../models/Package/Package");
 const ErrorHandler = require("../../utils/errorHandler");
 const stripe_secret_key = process.env.STRIPE_SECRET_KEY;
 const stripe = require("stripe")(stripe_secret_key);
-
+const StripeTransaction = require("../../models/Orders/StripeTransactions");
 const { createPackageCheckoutSession } = require("../stripe/Stripe.package");
 const { refundSecurityDeposit } = require("../stripe/stripe.securitydeposit");
 
@@ -24,8 +24,29 @@ const GetAllPackagesController = catchAsync(async (req, res, next) => {
   });
 });
 
+const CheckCouponUsageController = catchAsync(async (req, res, next) => {
+  const { customerId, couponCode } = req.body;
+  const customer = await Customer.findById(customerId);
+
+  if (!customer) {
+    return next(
+      new ErrorHandler(`Customer not found with id ${customerId}`, 404)
+    );
+  }
+
+  const hasUsedCoupon = customer.usedCoupons.includes(couponCode);
+
+  res.status(200).json({
+    success: true,
+    hasUsedCoupon: hasUsedCoupon,
+    message: hasUsedCoupon
+      ? `Coupon code ${couponCode} has already been used`
+      : `Coupon code ${couponCode} has not been used`,
+  });
+});
+
 const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
-  const { packageId, customerId } = req.body;
+  const { packageId, customerId, couponCode } = req.body;
   const package = await Package.findOne({ _id: packageId, isActive: true });
   const customer = await Customer.findById(customerId);
 
@@ -45,6 +66,13 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
     );
   }
 
+  // Check if the coupon has already been used by the customer
+  if (couponCode && customer.usedCoupons.includes(couponCode)) {
+    return next(
+      new ErrorHandler(`Coupon code ${couponCode} has already been used`, 400)
+    );
+  }
+
   let orderAmount = Math.round(package.price * 100);
 
   const wallet = await CustomerWallet.findOne({ customer: customer._id });
@@ -53,8 +81,67 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
     orderAmount += 1500;
   }
 
+  if (couponCode === "FIRST15" && orderAmount > 1500) {
+    orderAmount -= 1500;
+  }
+
   if (orderAmount < 200) {
     return next(new ErrorHandler(`Order amount must be at least 200 sen`, 400));
+  }
+
+  if (couponCode === "DISCOUNT100") {
+    try {
+      await StripeTransaction.create({
+        transaction_type: "package_buying",
+        customer_id: customerId,
+        amount: orderAmount,
+        currency: "myr",
+        status: "succeeded",
+        stripe_payment_intent_id: "DISCOUNT100",
+        package_id: packageId,
+      });
+
+      if (package.totalCredits) {
+        let wallet = await CustomerWallet.findOne({ customer: customerId });
+        if (!wallet) {
+          wallet = new CustomerWallet({ customer: customerId });
+        }
+
+        const totalFreeAndPaidCredit =
+          parseInt(package.totalCredits) +
+          parseInt(package.freeCupCredits || 0);
+        wallet.cupCredits += totalFreeAndPaidCredit;
+
+        if (wallet.securityDeposit === 0) {
+          wallet.securityDeposit = 15;
+        }
+        wallet.activatedOnce = true;
+        wallet.isWalletActive = true;
+        wallet.securityDepositPaymentIntentId = "DISCOUNT100";
+        await wallet.save();
+      }
+
+      // Add the coupon to the usedCoupons array
+      if (!customer.usedCoupons) {
+        customer.usedCoupons = [];
+      }
+      customer.usedCoupons.push(couponCode);
+      await customer.save();
+
+      return res.status(200).json({
+        success: true,
+        discount: true,
+        message: "Discount applied and transaction saved successfully",
+      });
+    } catch (err) {
+      console.error("Error creating StripeTransaction:", err);
+      return next(
+        new ErrorHandler(
+          `Failed to create StripeTransaction: ${err.message}`,
+          500
+        )
+      );
+    }
   }
 
   try {
@@ -67,6 +154,7 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
         customerId: customerId,
         totalCredits: package.totalCredits,
         freeCupCredits: package.freeCupCredits,
+        couponCode: couponCode,
       },
     });
 
@@ -267,4 +355,5 @@ module.exports = {
   // BuyPackageController,
   GetSecurityDepositWithdrawl,
   CreatePaymentIntentController,
+  CheckCouponUsageController,
 };
