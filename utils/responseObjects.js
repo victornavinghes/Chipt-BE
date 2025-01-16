@@ -102,7 +102,7 @@ exports.userAuthenticationResponses = {
         _id: user._id,
         accountActive: user.accountActive,
         username: user.username,
-        name: user.name ? user.name : "-",
+        name: user.name,
         email: user.primaryEmail,
         profilePicture: user.profilePicture,
         plotnumber: user.plotnumber,
