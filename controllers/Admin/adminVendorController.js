@@ -211,8 +211,21 @@ exports.projectName_Admin_Vendor_Account_Registration = CatchAsync(
 
     // f) Sending mail to vendor
     let emailSuccess = false;
-    let message = `Dear Vendor,\n\nYou store registration is successful and your store registration ID is ${registrationID}. Use below credential for first time login and after successful login do change you login password. \n\nOne time credential is:\nEmail: ${req.body.email}\nPassword: ${req.body.oneTimePassword} \nYou can login at the following link:
-    https://vendor.chipt.app/login \n\nBest of Luck!\n\nThanks\nChipt`;
+    let message = `Dear Vendor,
+
+    Your store registration is successful and your store registration ID is ${registrationID}. Use the below credentials for first-time login and after successful login, do change your login password.
+    
+    One-time credentials:
+    Email: ${req.body.email}
+    Password: ${req.body.oneTimePassword}
+    
+    You can log in at the following link:
+    https://vendor.chipt.app/login
+    
+    Best of Luck!
+    
+    Thanks,
+    Chipt`;
 
     await sendEmail({
       email: req.body.email,
