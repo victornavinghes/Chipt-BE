@@ -684,17 +684,35 @@ exports.projectName_Vendor_Store_Location_Updated = CatchAsync(
     // a) Fetching user ID from
     const vendorId = req.user.id;
     const location = req.body.location;
-    if (!location)
-      return next(new ErrorHandler(`Please provide location`, 400));
 
-    // b) Fetching vendor account and checking for error
-    const vendor = await Vendors.findById({ _id: vendorId }).select("location");
-    if (!vendor) {
-      return next(new ErrorHandler(`Something went wrong`, 200));
+    if (!location || location.length !== 2) {
+      return next(
+        new ErrorHandler(`Please provide valid location coordinates`, 400)
+      );
     }
 
-    // c) Saving vendor location
-    vendor.location.coordinates = req.body.location;
+    const [longitude, latitude] = location;
+
+    // b) Validating longitude and latitude
+    if (
+      longitude < -180 ||
+      longitude > 180 ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
+      return next(
+        new ErrorHandler(`Longitude and latitude values are out of bounds`, 400)
+      );
+    }
+
+    // c) Fetching vendor account and checking for error
+    const vendor = await Vendors.findById({ _id: vendorId }).select("location");
+    if (!vendor) {
+      return next(new ErrorHandler(`Something went wrong`, 500));
+    }
+
+    // d) Saving vendor location
+    vendor.location.coordinates = [longitude, latitude];
     await vendor.save();
 
     // e) Sending response
