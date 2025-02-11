@@ -88,12 +88,15 @@ const handleWebhook = async (req, res, next) => {
         await wallet.save();
       }
 
-      if (session.metadata.couponCode === "FIRST15") {
+      if (
+        session.metadata.couponCode === "FIRST15" ||
+        session.metadata.couponCode === "CHIPTDEAL30"
+      ) {
         const customer = await Customer.findById(customerId);
         if (!customer.usedCoupons) {
           customer.usedCoupons = [];
         }
-        customer.usedCoupons.push("FIRST15");
+        customer.usedCoupons.push(session.metadata.couponCode);
         await customer.save();
       }
 
