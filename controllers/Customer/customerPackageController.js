@@ -85,6 +85,10 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
     orderAmount -= 1500;
   }
 
+  if (couponCode === "CHIPTDEAL30" && orderAmount > 3000) {
+    orderAmount -= 3000;
+  }
+
   if (orderAmount < 200) {
     return next(new ErrorHandler(`Order amount must be at least 200 sen`, 400));
   }
