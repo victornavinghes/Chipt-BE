@@ -568,13 +568,15 @@ exports.projectName_Vendor_Account_Password_Reset = CatchAsync(
 // 12) ✅ VENDOR: Account information
 exports.projectName_Vendor_Account_Informations = CatchAsync(
   async (req, res, next) => {
-    // a) Fetching vendor ID from loggin vendor
+    // a) Fetching vendor ID from logged-in vendor
     const vendorID = req.user.id;
 
-    // b) Fetching vendor details and checking if it exist
+    // b) Fetching vendor details and checking if it exists
     const vendor = await Vendors.findById({ _id: vendorID }).select(
-      "+accountActive +accountVerified +registrationID +name username primaryEmail +secondaryEmail countryCode +primaryContactNumber +secondaryContactNumber +dateOfRegistration plotnumber address city state country zipCode profilePicture location"
+      "+accountActive +accountVerified +registrationID +name +username +primaryEmail +secondaryEmail +countryCode +primaryContactNumber +secondaryContactNumber +dateOfRegistration +plotnumber +address +city +state +country +zipCode +profilePicture +location"
     );
+
+    console.log(vendor?.name);
 
     if (!vendor) {
       return next(new ErrorHandler("No Vendor information found.", 404));
@@ -593,6 +595,27 @@ exports.projectName_Vendor_Account_Informations = CatchAsync(
 // 13) ✅ VENDOR: Account information update
 exports.projectName_Vendor_Account_Information_Update = CatchAsync(
   async (req, res, next) => {
+    const location = req.body.location;
+    if (!location || location.length !== 2) {
+      return next(
+        new ErrorHandler(`Please provide valid location coordinates`, 400)
+      );
+    }
+
+    const [longitude, latitude] = location;
+
+    // b) Validating longitude and latitude
+    if (
+      longitude < -180 ||
+      longitude > 180 ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
+      return next(
+        new ErrorHandler(`Longitude and latitude values are out of bounds`, 400)
+      );
+    }
+
     // a) Fetching vendor data and checking if it exists
     const vendorCheck = await Vendors.findById({ _id: req.user.id }).select(
       "primaryEmail +secondaryEmail +primaryContactNumber +secondaryContactNumber"
@@ -636,8 +659,10 @@ exports.projectName_Vendor_Account_Information_Update = CatchAsync(
     // c.4) Checking if primary and secondary contacts are same
     // c.5) Primary contact
     if (req.body.contact) {
-      if (req.body.contact === vendorCheck.primaryContactNumber) {
-      } else {
+      if (
+        req.body.contact.toString() !==
+        vendorCheck.primaryContactNumber.toString()
+      ) {
         const cnCheck = await utilsMiddleware.userContactExistanceCheck(
           req.body.countryCode,
           req.body.contact
@@ -666,7 +691,10 @@ exports.projectName_Vendor_Account_Information_Update = CatchAsync(
     vendorCheck.zipCode = req.body.zipCode;
     vendorCheck.location = {
       type: "Point",
-      coordinates: req.body.location,
+      coordinates: [
+        parseFloat(req.body.location[0].toFixed(6)),
+        parseFloat(req.body.location[1].toFixed(6)),
+      ],
     };
     await vendorCheck.save();
 
