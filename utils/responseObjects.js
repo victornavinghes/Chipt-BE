@@ -114,6 +114,7 @@ exports.userAuthenticationResponses = {
         country: user.country,
         zipCode: user.zipCode,
         location: user.location,
+        singleUseCupCost: user.singleUseCupCost,
       };
       if (user.secondaryEmail) data.secondaryEmail = user.secondaryEmail;
       if (user.secondaryContactNumber)

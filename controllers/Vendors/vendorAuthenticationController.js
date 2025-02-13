@@ -573,10 +573,8 @@ exports.projectName_Vendor_Account_Informations = CatchAsync(
 
     // b) Fetching vendor details and checking if it exists
     const vendor = await Vendors.findById({ _id: vendorID }).select(
-      "+accountActive +accountVerified +registrationID +name +username +primaryEmail +secondaryEmail +countryCode +primaryContactNumber +secondaryContactNumber +dateOfRegistration +plotnumber +address +city +state +country +zipCode +profilePicture +location"
+      "+accountActive +accountVerified +registrationID +name +username +primaryEmail +secondaryEmail +countryCode +primaryContactNumber +secondaryContactNumber +dateOfRegistration +plotnumber +address +city +state +country +zipCode +profilePicture +location +singleUseCupCost"
     );
-
-    console.log(vendor?.name);
 
     if (!vendor) {
       return next(new ErrorHandler("No Vendor information found.", 404));
@@ -680,6 +678,7 @@ exports.projectName_Vendor_Account_Information_Update = CatchAsync(
 
     // e) User registration in database
     vendorCheck.name = req.body.name;
+    vendorCheck.singleUseCupCost = req.body.singleUseCupCost;
     vendorCheck.username = req.body.username;
     vendorCheck.countryCode = req.body.countryCode;
     vendorCheck.primaryContactNumber = req.body.contact;
