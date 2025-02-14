@@ -1,5 +1,6 @@
 const catchAsync = require("../../errors/catchAsync");
 const Coupon = require("../../models/Coupon/Coupon");
+const Customer = require("../../models/Customer/Customer");
 const ErrorHandler = require("../../utils/errorHandler");
 
 const AddCouponController = catchAsync(async (req, res, next) => {
@@ -100,6 +101,11 @@ const GetSingleCouponController = catchAsync(async (req, res, next) => {
 
 const ApplyCouponController = catchAsync(async (req, res, next) => {
   const { couponCode } = req.body;
+  const customerId = req.user.id;
+
+  if (!customerId) {
+    return next(new ErrorHandler(`Please provide a customer id`, 400));
+  }
 
   if (!couponCode) {
     return next(new ErrorHandler(`Please provide a coupon code`, 400));
@@ -113,6 +119,14 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
 
   if (new Date() > coupon.validTill) {
     return next(new ErrorHandler(`Coupon has expired`, 400));
+  }
+
+  const customer = await Customer.findById(customerId);
+
+  const usedCount = customer.usedCoupons.get(couponCode) || 0;
+
+  if (usedCount >= coupon.usageLimit) {
+    return next(new ErrorHandler(`Coupon usage limit reached`, 400));
   }
 
   res.status(200).json({

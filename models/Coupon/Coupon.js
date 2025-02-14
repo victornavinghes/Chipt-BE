@@ -20,6 +20,11 @@ const CouponSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    usageLimit: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
     deleted: {
       type: Boolean,
       default: false,

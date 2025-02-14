@@ -193,8 +193,9 @@ const CustomerAuthSchema = new mongoose.Schema(
       select: false,
     },
     usedCoupons: {
-      type: [String],
-      default: [],
+      type: Map,
+      of: Number,
+      default: {},
     },
   },
   { timestamps: true }

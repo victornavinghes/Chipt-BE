@@ -10,6 +10,7 @@ const stripe = require("stripe")(stripe_secret_key);
 const StripeTransaction = require("../../models/Orders/StripeTransactions");
 const { createPackageCheckoutSession } = require("../stripe/Stripe.package");
 const { refundSecurityDeposit } = require("../stripe/stripe.securitydeposit");
+const Coupon = require("../../models/Coupon/Coupon");
 
 const GetAllPackagesController = catchAsync(async (req, res, next) => {
   const customerId = req.user.id;
@@ -45,6 +46,30 @@ const CheckCouponUsageController = catchAsync(async (req, res, next) => {
   });
 });
 
+const applyCoupon = async (couponCode, orderAmount, usedCount) => {
+  const coupon = await Coupon.findOne({ couponCode, deleted: false });
+
+  if (!coupon) {
+    throw new ErrorHandler(`Coupon not found or has been deleted`, 404);
+  }
+
+  if (new Date() > coupon.validTill) {
+    throw new ErrorHandler(`Coupon has expired`, 400);
+  }
+
+  if (usedCount >= coupon.usageLimit) {
+    throw new ErrorHandler(`Coupon usage limit reached`, 400);
+  }
+
+  if (coupon.discountType === "percentage") {
+    orderAmount -= (orderAmount * coupon.discount) / 100;
+  } else if (coupon.discountType === "flat") {
+    orderAmount -= coupon.discount;
+  }
+
+  return orderAmount;
+};
+
 const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
   const { packageId, customerId, couponCode } = req.body;
   const package = await Package.findOne({ _id: packageId, isActive: true });
@@ -66,27 +91,21 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
     );
   }
 
-  // Check if the coupon has already been used by the customer
-  if (couponCode && customer.usedCoupons.includes(couponCode)) {
-    return next(
-      new ErrorHandler(`Coupon code ${couponCode} has already been used`, 400)
-    );
-  }
-
   let orderAmount = Math.round(package.price * 100);
+
+  if (couponCode) {
+    const usedCount = customer.usedCoupons.get(couponCode) || 0;
+    try {
+      orderAmount = await applyCoupon(couponCode, orderAmount, usedCount);
+    } catch (error) {
+      return next(error);
+    }
+  }
 
   const wallet = await CustomerWallet.findOne({ customer: customer._id });
 
   if (!wallet || wallet.securityDeposit < 15) {
     orderAmount += 1500;
-  }
-
-  if (couponCode === "FIRST15" && orderAmount > 1500) {
-    orderAmount -= 1500;
-  }
-
-  if (couponCode === "CHIPTDEAL30" && orderAmount > 3000) {
-    orderAmount -= 3000;
   }
 
   if (orderAmount < 200) {
