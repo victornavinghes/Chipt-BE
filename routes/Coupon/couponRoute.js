@@ -16,11 +16,13 @@ const couponAuthMiddleware = [
   authToken.userAuthorizedRole(["super_vendor", "admin"]),
 ];
 
-router.route("/apply").post(
-  // authToken.isUserAuthenticated,
-  // authToken.userAuthorizedRole(["customer", "customer"]),
-  ApplyCouponController
-);
+router
+  .route("/apply")
+  .post(
+    authToken.isUserAuthenticated,
+    authToken.userAuthorizedRole(["customer", "customer"]),
+    ApplyCouponController
+  );
 
 router
   .route("/")

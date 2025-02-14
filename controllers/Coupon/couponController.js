@@ -2,11 +2,13 @@ const catchAsync = require("../../errors/catchAsync");
 const Coupon = require("../../models/Coupon/Coupon");
 const Customer = require("../../models/Customer/Customer");
 const ErrorHandler = require("../../utils/errorHandler");
+const Package = require("../../models/Package/Package");
 
 const AddCouponController = catchAsync(async (req, res, next) => {
-  const { couponCode, discountType, discount, validTill } = req.body;
+  const { couponCode, discountType, discount, validTill, usageLimit } =
+    req.body;
 
-  if (!couponCode || !discountType || !discount || !validTill) {
+  if (!couponCode || !discountType || !discount || !validTill || !usageLimit) {
     return next(new ErrorHandler(`Please provide all required details`, 400));
   }
 
@@ -15,6 +17,7 @@ const AddCouponController = catchAsync(async (req, res, next) => {
     discountType,
     discount,
     validTill,
+    usageLimit,
   });
 
   await newCoupon.save();
@@ -36,9 +39,10 @@ const GetAllCouponsController = catchAsync(async (req, res, next) => {
 
 const UpdateCouponController = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { couponCode, discountType, discount, validTill } = req.body;
+  const { couponCode, discountType, discount, validTill, usageLimit } =
+    req.body;
 
-  if (!couponCode || !discountType || !discount || !validTill) {
+  if (!couponCode || !discountType || !discount || !validTill || !usageLimit) {
     return next(new ErrorHandler(`Please provide all required details`, 400));
   }
 
@@ -55,6 +59,7 @@ const UpdateCouponController = catchAsync(async (req, res, next) => {
       discountType,
       discount,
       validTill,
+      usageLimit,
     },
     { new: true, runValidators: true }
   );
@@ -100,11 +105,15 @@ const GetSingleCouponController = catchAsync(async (req, res, next) => {
 });
 
 const ApplyCouponController = catchAsync(async (req, res, next) => {
-  const { couponCode } = req.body;
+  const { couponCode, packageId } = req.body;
   const customerId = req.user.id;
 
   if (!customerId) {
     return next(new ErrorHandler(`Please provide a customer id`, 400));
+  }
+
+  if (!packageId) {
+    return next(new ErrorHandler(`Please provide a package id`, 400));
   }
 
   if (!couponCode) {
@@ -116,6 +125,14 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
   if (!coupon) {
     return next(new ErrorHandler(`Coupon not found or has been deleted`, 404));
   }
+
+  const package = await Package.findById(packageId);
+
+  if (!package || !package.price) {
+    return next(new ErrorHandler(`Package not found or has been deleted`, 404));
+  }
+
+  let orderAmount = Math.round(package.price * 100);
 
   if (new Date() > coupon.validTill) {
     return next(new ErrorHandler(`Coupon has expired`, 400));
@@ -129,6 +146,19 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
     return next(new ErrorHandler(`Coupon usage limit reached`, 400));
   }
 
+  let discountedAmount;
+  if (coupon.discountType === "percentage") {
+    discountedAmount = orderAmount - (orderAmount * coupon.discount) / 100;
+  } else if (coupon.discountType === "flat") {
+    discountedAmount = orderAmount - coupon.discount * 100;
+  }
+
+  console.log("discountedAmount", discountedAmount);
+
+  if (!discountedAmount || discountedAmount < 0) {
+    return next(new ErrorHandler(`Copon not applicable on this package.`, 400));
+  }
+
   res.status(200).json({
     success: true,
     coupon: {
@@ -136,6 +166,7 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
       discountType: coupon.discountType,
       discount: coupon.discount,
     },
+    discountedAmount: discountedAmount / 100,
   });
 });
 
