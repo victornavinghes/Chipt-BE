@@ -89,12 +89,16 @@ const handleWebhook = async (req, res, next) => {
       }
 
       if (session.metadata.couponCode) {
-        const customer = await Customer.findById(customerId);
-        const couponCode = session.metadata.couponCode;
-        const usedCount = customer.usedCoupons.get(couponCode) || 0;
+        try {
+          const customer = await Customer.findById(customerId);
+          const couponCode = session.metadata.couponCode;
+          const usedCount = customer.usedCoupons.get(couponCode) || 0;
 
-        customer.usedCoupons.set(couponCode, usedCount + 1);
-        await customer.save();
+          customer.usedCoupons.set(couponCode, usedCount + 1);
+          await customer.save();
+        } catch (err) {
+          console.error("Error updating customer used coupons:", err);
+        }
       }
 
       // Comment PackageOrder
