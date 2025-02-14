@@ -9,6 +9,7 @@ const AdminAuthRoute = require("./Admin/authenticationRoute.js");
 const AdminVendorRoute = require("./Admin/vendorRoute.js");
 const AdminCustomerRoute = require("./Admin/customerRoute.js");
 const AdminCupInventoryRoute = require("./Admin/cupInventoryRoute.js");
+const CouponRoute = require("./Coupon/couponRoute.js");
 const AdminPackageRoute = require("./Admin/packageRoute.js");
 
 // Vendors Routes Import
@@ -34,6 +35,7 @@ router.use("/admin/vendor", AdminVendorRoute);
 router.use("/admin/cup", AdminCupInventoryRoute);
 router.use("/admin/customer", AdminCustomerRoute);
 router.use("/admin/package", AdminPackageRoute);
+router.use("/admin/coupon", CouponRoute);
 
 // B) Vendors Route Table
 router.use("/vendor/account", VendorAuthRoute);
