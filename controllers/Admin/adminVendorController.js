@@ -93,8 +93,7 @@ exports.projectName_Admin_Vendor_Account_Registration = CatchAsync(
       return next(new ErrorHandler("Please fill all the required fields", 400));
     }
 
-    // b) Converting [lat, lng] to [lng, lat]
-    const [latitude, longitude] = location;
+    const [longitude, latitude] = location;
     if (
       latitude < -90 ||
       latitude > 90 ||
