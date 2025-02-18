@@ -109,38 +109,70 @@ cron.schedule("0 */12 * * *", async () => {
         const wallet = await CustomerWallet.find({
           customer: userCup.currentCustomer._id,
         });
+        let walletCredit = false;
         if (wallet) {
-          wallet.securityDeposit = 0;
-          wallet.isWalletActive = false;
+          if (wallet.cupCredits && wallet.cupCredits > 15) {
+            wallet.cupCredits -= 15;
+            walletCredit = true;
+          } else {
+            wallet.securityDeposit = 0;
+            wallet.isWalletActive = false;
+          }
           await wallet.save();
         }
         if (customer) {
-          customer.isBlocked = true;
-          await customer.save();
-          // Send email notification
-          const message = `Dear customer,\n\nCup ${
-            userCup.cupID.cupType.charAt(0).toUpperCase() +
-            userCup.cupID.cupType.slice(1)
-          } (size: ${
-            userCup.cupID.cupSize.charAt(0).toUpperCase() +
-            userCup.cupID.cupSize.slice(1)
-          }) ordered by you on ${new Date(
-            userCup.orderDate
-          ).toDateString()} is overdue for return. Please return it as soon as possible. Your account has been blocked due to this overdue.\n\nThanks,\nChipt Asia`;
-          try {
-            await sendEmail({
-              email: userCup.currentCustomer.primaryEmail,
-              subject: "Chipt Cup Return Overdue - Account Blocked",
-              message,
-            });
-            console.log(
-              `Email sent to ${userCup.currentCustomer.primaryEmail}`
-            );
-          } catch (error) {
-            console.error(
-              `Failed to send email to ${userCup.currentCustomer.primaryEmail}:`,
-              error.message
-            );
+          if (walletCredit) {
+            const message = `Dear customer,\n\nCup ${
+              userCup.cupID.cupType.charAt(0).toUpperCase() +
+              userCup.cupID.cupType.slice(1)
+            } (size: ${
+              userCup.cupID.cupSize.charAt(0).toUpperCase() +
+              userCup.cupID.cupSize.slice(1)
+            }) ordered by you on ${new Date(
+              userCup.orderDate
+            ).toDateString()} is overdue for return. 15 credits have been deducted from your wallet. Please return the cup as soon as possible.\n\nThanks,\nChipt Asia`;
+            try {
+              await sendEmail({
+                email: userCup.currentCustomer.primaryEmail,
+                subject: "Chipt Cup Return Overdue - Credits Deducted",
+                message,
+              });
+              console.log(
+                `Email sent to ${userCup.currentCustomer.primaryEmail}`
+              );
+            } catch (error) {
+              console.error(
+                `Failed to send email to ${userCup.currentCustomer.primaryEmail}:`,
+                error.message
+              );
+            }
+          } else {
+            customer.isBlocked = true;
+            await customer.save();
+            const message = `Dear customer,\n\nCup ${
+              userCup.cupID.cupType.charAt(0).toUpperCase() +
+              userCup.cupID.cupType.slice(1)
+            } (size: ${
+              userCup.cupID.cupSize.charAt(0).toUpperCase() +
+              userCup.cupID.cupSize.slice(1)
+            }) ordered by you on ${new Date(
+              userCup.orderDate
+            ).toDateString()} is overdue for return. Please return it as soon as possible. Your account has been blocked due to this overdue.\n\nThanks,\nChipt Asia`;
+            try {
+              await sendEmail({
+                email: userCup.currentCustomer.primaryEmail,
+                subject: "Chipt Cup Return Overdue - Account Blocked",
+                message,
+              });
+              console.log(
+                `Email sent to ${userCup.currentCustomer.primaryEmail}`
+              );
+            } catch (error) {
+              console.error(
+                `Failed to send email to ${userCup.currentCustomer.primaryEmail}:`,
+                error.message
+              );
+            }
           }
         }
       }
