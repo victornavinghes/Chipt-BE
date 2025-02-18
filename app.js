@@ -107,7 +107,7 @@ cron.schedule("0 */12 * * *", async () => {
         // Block the customer
         const customer = await Customer.findById(userCup.currentCustomer._id);
         const wallet = await CustomerWallet.find({
-          customer: currentCustomer._id,
+          customer: userCup.currentCustomer._id,
         });
         if (wallet) {
           wallet.securityDeposit = 0;
@@ -145,8 +145,6 @@ cron.schedule("0 */12 * * *", async () => {
         }
       }
     }
-
-    console.log("Cron job completed");
   } catch (error) {
     console.error("Error running cron job:", error);
   }
