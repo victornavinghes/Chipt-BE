@@ -146,7 +146,7 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
     return next(new ErrorHandler(`Coupon usage limit reached`, 400));
   }
 
-  let discountedAmount;
+  let discountedAmount = 0;
   if (coupon.discountType === "percentage") {
     discountedAmount = orderAmount - (orderAmount * coupon.discount) / 100;
   } else if (coupon.discountType === "flat") {
@@ -155,7 +155,7 @@ const ApplyCouponController = catchAsync(async (req, res, next) => {
 
   console.log("discountedAmount", discountedAmount);
 
-  if (!discountedAmount || discountedAmount < 0) {
+  if (discountedAmount < 0) {
     return next(new ErrorHandler(`Copon not applicable on this package.`, 400));
   }
 

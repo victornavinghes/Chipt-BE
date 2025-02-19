@@ -108,11 +108,7 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
     orderAmount += 1500;
   }
 
-  if (orderAmount < 200) {
-    return next(new ErrorHandler(`Order amount must be at least 200 sen`, 400));
-  }
-
-  if (couponCode === "DISCOUNT100") {
+  if (orderAmount === 0) {
     try {
       await StripeTransaction.create({
         transaction_type: "package_buying",
@@ -148,7 +144,10 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
       if (!customer.usedCoupons) {
         customer.usedCoupons = [];
       }
-      customer.usedCoupons.push(couponCode);
+      customer.usedCoupons.set(
+        couponCode,
+        (customer.usedCoupons.get(couponCode) || 0) + 1
+      );
       await customer.save();
 
       return res.status(200).json({
@@ -165,6 +164,10 @@ const CreatePaymentIntentController = catchAsync(async (req, res, next) => {
         )
       );
     }
+  }
+
+  if (orderAmount < 200) {
+    return next(new ErrorHandler(`Order amount must be at least 200 sen`, 400));
   }
 
   try {
